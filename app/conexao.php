@@ -9,7 +9,7 @@ class Conexao
     {
         if (self::$pdo === null) {
             $host = 'localhost';
-            $banco = 'trabalho3o';
+            $banco = 'trabalho3oano';
             $usuario = 'root';
             $senha = '';
 
