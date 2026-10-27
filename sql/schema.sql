@@ -1,4 +1,3 @@
-
 CREATE DATABASE IF NOT EXISTS trabalho3oano
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
@@ -57,7 +56,12 @@ CREATE TABLE perfil (
 CREATE TABLE pokemon (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) NOT NULL UNIQUE,
-    tipo ENUM('fogo', 'agua', 'planta', 'eletrico') NOT NULL,
+    tipo ENUM(
+        'fogo',
+        'agua',
+        'planta',
+        'eletrico'
+    ) NOT NULL,
     hp_base INT NOT NULL,
     ataque INT NOT NULL,
     defesa INT NOT NULL,
@@ -119,7 +123,11 @@ CREATE TABLE pokemon_perfil (
 CREATE TABLE npc (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) NOT NULL UNIQUE,
-    dificuldade ENUM('facil', 'medio', 'dificil') NOT NULL UNIQUE,
+    dificuldade ENUM(
+        'facil',
+        'medio',
+        'dificil'
+    ) NOT NULL UNIQUE,
     recompensa INT NOT NULL,
     CHECK (recompensa >= 0)
 );
@@ -270,9 +278,15 @@ CREATE TABLE batalha_pokemon (
     FOREIGN KEY (pokemon_perfil_id) REFERENCES pokemon_perfil(id),
     FOREIGN KEY (npc_pokemon_id) REFERENCES npc_pokemon(id),
     CHECK (
-        (pokemon_perfil_id IS NOT NULL AND npc_pokemon_id IS NULL)
+        (
+            pokemon_perfil_id IS NOT NULL
+            AND npc_pokemon_id IS NULL
+        )
         OR
-        (pokemon_perfil_id IS NULL AND npc_pokemon_id IS NOT NULL)
+        (
+            pokemon_perfil_id IS NULL
+            AND npc_pokemon_id IS NOT NULL
+        )
     ),
     CHECK (hp_atual IS NULL OR hp_atual >= 0),
     CHECK (hp_maximo IS NULL OR hp_maximo > 0),
@@ -357,11 +371,23 @@ BEGIN
     DECLARE v_evasao INT;
 
     SELECT
-        hp_base, ataque, defesa, ataque_especial,
-        defesa_especial, velocidade, precisao, evasao
+        hp_base,
+        ataque,
+        defesa,
+        ataque_especial,
+        defesa_especial,
+        velocidade,
+        precisao,
+        evasao
     INTO
-        v_hp, v_ataque, v_defesa, v_ataque_especial,
-        v_defesa_especial, v_velocidade, v_precisao, v_evasao
+        v_hp,
+        v_ataque,
+        v_defesa,
+        v_ataque_especial,
+        v_defesa_especial,
+        v_velocidade,
+        v_precisao,
+        v_evasao
     FROM pokemon
     WHERE id = NEW.pokemon_id;
 
@@ -427,7 +453,8 @@ FOR EACH ROW
 BEGIN
     DECLARE v_hp INT;
 
-    SELECT hp_base INTO v_hp
+    SELECT hp_base
+    INTO v_hp
     FROM pokemon
     WHERE id = NEW.pokemon_id;
 
@@ -474,18 +501,27 @@ CREATE TRIGGER trg_define_recompensa
 BEFORE UPDATE ON batalha
 FOR EACH ROW
 BEGIN
-    IF OLD.resultado = 'em_andamento'
-       AND NEW.resultado = 'vitoria' THEN
-        SELECT recompensa INTO NEW.recompensa
-        FROM npc
-        WHERE id = NEW.npc_id;
-    ELSEIF OLD.resultado = 'em_andamento'
-       AND NEW.resultado IN ('derrota', 'empate') THEN
+    IF OLD.resultado <> 'em_andamento' THEN
+        IF NEW.resultado <> OLD.resultado THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT =
+                'Uma batalha finalizada nao pode ser reaberta nem alterada';
+        END IF;
+
+        SET NEW.recompensa = OLD.recompensa;
+
+    ELSEIF NEW.resultado = 'vitoria' THEN
+        SET NEW.recompensa = (
+            SELECT recompensa
+            FROM npc
+            WHERE id = NEW.npc_id
+        );
+
+    ELSEIF NEW.resultado IN ('derrota', 'empate') THEN
         SET NEW.recompensa = 0;
-    ELSEIF OLD.resultado <> 'em_andamento'
-       AND NEW.resultado <> OLD.resultado THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'O resultado final da batalha nao pode ser alterado';
+
+    ELSE
+        SET NEW.recompensa = 0;
     END IF;
 END//
 
@@ -516,22 +552,14 @@ BEGIN
         WHERE bp.batalha_id = NEW.id
           AND bp.npc_pokemon_id IS NOT NULL;
 
-        IF NEW.resultado = 'vitoria' AND NEW.recompensa > 0 THEN
+        IF NEW.resultado = 'vitoria'
+           AND NEW.recompensa > 0 THEN
+
             UPDATE perfil
             SET saldo = saldo + NEW.recompensa
             WHERE id = NEW.perfil_id;
-        END IF;
-    END IF;
-END//
 
-CREATE TRIGGER trg_finaliza_batalha
-BEFORE UPDATE ON batalha
-FOR EACH ROW
-BEGIN
-    IF OLD.resultado <> 'em_andamento'
-       AND NEW.resultado <> OLD.resultado THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Uma batalha finalizada nao pode ser reaberta';
+        END IF;
     END IF;
 END//
 
