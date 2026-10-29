@@ -64,8 +64,7 @@ CREATE TABLE pokemon (
     CHECK (hp_base > 0),
     CHECK (ataque > 0),
     CHECK (defesa > 0),
-    CHECK (velocidade > 0),
-    CHECK (evolui_para_id IS NULL OR evolui_para_id <> id)
+    CHECK (velocidade > 0)
 );
 
 CREATE TABLE pokemon_perfil (
