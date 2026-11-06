@@ -2,7 +2,7 @@
 <?php
 
 require_once __DIR__ . '/../includes/sessao.php';
-require_once __DIR__ . '/../repositorios/JogadorRepositorio.php';
+require_once __DIR__ . '/../repositorios/jogadorrepositorio.php';
 
 exigirLogin();
 
