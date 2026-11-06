@@ -1,3 +1,4 @@
+
 <?php
 
 require_once __DIR__ . '/../conexao.php';
@@ -12,8 +13,15 @@ class BatalhaRepositorio
         $this->pdo = Conexao::conectar();
     }
 
+    // cria uma batalha para o perfil e o npc
     public function criar(int $perfilId, int $npcId): int
     {
+        if ($perfilId <= 0 || $npcId <= 0) {
+            throw new InvalidArgumentException(
+                'Perfil ou treinador invalido.'
+            );
+        }
+
         $sql = "
             INSERT INTO batalha
                 (perfil_id, npc_id, resultado, recompensa)
@@ -31,12 +39,17 @@ class BatalhaRepositorio
         return (int) $this->pdo->lastInsertId();
     }
 
+    // busca uma batalha e a dificuldade do treinador
     public function buscarPorId(int $id): ?Batalha
     {
         $sql = "
-            SELECT *
-            FROM batalha
-            WHERE id = :id
+            SELECT
+                b.*,
+                n.dificuldade
+            FROM batalha b
+            INNER JOIN npc n
+                ON n.id = b.npc_id
+            WHERE b.id = :id
         ";
 
         $consulta = $this->pdo->prepare($sql);
@@ -51,22 +64,21 @@ class BatalhaRepositorio
             return null;
         }
 
-        return new Batalha(
-            (int) $dados['id'],
-            (int) $dados['perfil_id'],
-            (int) $dados['npc_id'],
-            $dados['resultado'],
-            (int) $dados['recompensa']
-        );
+        return $this->criarObjeto($dados);
     }
 
+    // lista o historico de batalhas do perfil
     public function listarPorPerfil(int $perfilId): array
     {
         $sql = "
-            SELECT *
-            FROM batalha
-            WHERE perfil_id = :perfil_id
-            ORDER BY data_batalha DESC
+            SELECT
+                b.*,
+                n.dificuldade
+            FROM batalha b
+            INNER JOIN npc n
+                ON n.id = b.npc_id
+            WHERE b.perfil_id = :perfil_id
+            ORDER BY b.data_batalha DESC, b.id DESC
         ";
 
         $consulta = $this->pdo->prepare($sql);
@@ -75,28 +87,53 @@ class BatalhaRepositorio
             ':perfil_id' => $perfilId
         ]);
 
-        $resultados = $consulta->fetchAll();
-
         $batalhas = [];
 
-        foreach ($resultados as $dados) {
-            $batalhas[] = new Batalha(
-                (int) $dados['id'],
-                (int) $dados['perfil_id'],
-                (int) $dados['npc_id'],
-                $dados['resultado'],
-                (int) $dados['recompensa']
-            );
+        foreach ($consulta->fetchAll() as $dados) {
+            $batalhas[] = $this->criarObjeto($dados);
         }
 
         return $batalhas;
     }
 
+    // busca a batalha em andamento de um perfil
+    public function buscarEmAndamento(
+        int $perfilId
+    ): ?Batalha {
+        $sql = "
+            SELECT
+                b.*,
+                n.dificuldade
+            FROM batalha b
+            INNER JOIN npc n
+                ON n.id = b.npc_id
+            WHERE b.perfil_id = :perfil_id
+              AND b.resultado = 'em_andamento'
+            ORDER BY b.id DESC
+            LIMIT 1
+        ";
+
+        $consulta = $this->pdo->prepare($sql);
+
+        $consulta->execute([
+            ':perfil_id' => $perfilId
+        ]);
+
+        $dados = $consulta->fetch();
+
+        if (!$dados) {
+            return null;
+        }
+
+        return $this->criarObjeto($dados);
+    }
+
+    // finaliza a batalha e aciona os gatilhos do banco
     public function finalizar(
         int $batalhaId,
         string $resultado,
         string $log = ''
-    ): void {
+    ): bool {
         $resultadosPermitidos = [
             'vitoria',
             'derrota',
@@ -114,7 +151,7 @@ class BatalhaRepositorio
             SET resultado = :resultado,
                 log = :log
             WHERE id = :id
-            AND resultado = 'em_andamento'
+              AND resultado = 'em_andamento'
         ";
 
         $consulta = $this->pdo->prepare($sql);
@@ -124,5 +161,20 @@ class BatalhaRepositorio
             ':log' => $log,
             ':id' => $batalhaId
         ]);
+
+        return $consulta->rowCount() === 1;
+    }
+
+    // transforma os dados do banco em objeto
+    private function criarObjeto(array $dados): Batalha
+    {
+        return new Batalha(
+            (int) $dados['id'],
+            (int) $dados['perfil_id'],
+            (int) $dados['npc_id'],
+            $dados['resultado'],
+            (int) $dados['recompensa'],
+            $dados['dificuldade']
+        );
     }
 }
