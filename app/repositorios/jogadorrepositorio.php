@@ -19,7 +19,7 @@ class JogadorRepositorio
 
         if ($usuarioId <= 0 || $nome === '') {
             throw new InvalidArgumentException(
-                "Usuario e nome do perfil sao obrigatorios."
+                'Usuario e nome do perfil sao obrigatorios.'
             );
         }
 
@@ -29,7 +29,6 @@ class JogadorRepositorio
         ";
 
         $consulta = $this->pdo->prepare($sql);
-
         $consulta->execute([
             ':usuario_id' => $usuarioId,
             ':nome' => $nome
@@ -71,10 +70,9 @@ class JogadorRepositorio
         $consulta = $this->pdo->prepare($sql);
         $consulta->execute([':usuario_id' => $usuarioId]);
 
-        $resultados = $consulta->fetchAll();
         $jogadores = [];
 
-        foreach ($resultados as $dados) {
+        foreach ($consulta->fetchAll() as $dados) {
             $jogadores[] = new Jogador(
                 (int) $dados['id'],
                 (int) $dados['usuario_id'],
@@ -88,7 +86,7 @@ class JogadorRepositorio
 
     public function atualizarSaldo(int $perfilId, int $saldo): bool
     {
-        if ($saldo < 0) {
+        if ($perfilId <= 0 || $saldo < 0) {
             return false;
         }
 
@@ -99,10 +97,54 @@ class JogadorRepositorio
         ";
 
         $consulta = $this->pdo->prepare($sql);
-
-        return $consulta->execute([
+        $consulta->execute([
             ':saldo' => $saldo,
             ':id' => $perfilId
         ]);
+
+        return $consulta->rowCount() > 0;
+    }
+
+    public function adicionarSaldo(int $perfilId, int $valor): bool
+    {
+        if ($perfilId <= 0 || $valor <= 0) {
+            return false;
+        }
+
+        $sql = "
+            UPDATE perfil
+            SET saldo = saldo + :valor
+            WHERE id = :id
+        ";
+
+        $consulta = $this->pdo->prepare($sql);
+        $consulta->execute([
+            ':valor' => $valor,
+            ':id' => $perfilId
+        ]);
+
+        return $consulta->rowCount() > 0;
+    }
+
+    public function gastarSaldo(int $perfilId, int $valor): bool
+    {
+        if ($perfilId <= 0 || $valor <= 0) {
+            return false;
+        }
+
+        $sql = "
+            UPDATE perfil
+            SET saldo = saldo - :valor
+            WHERE id = :id
+            AND saldo >= :valor
+        ";
+
+        $consulta = $this->pdo->prepare($sql);
+        $consulta->execute([
+            ':valor' => $valor,
+            ':id' => $perfilId
+        ]);
+
+        return $consulta->rowCount() > 0;
     }
 }
