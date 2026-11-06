@@ -1,3 +1,4 @@
+
 <?php
 
 class Batalha
@@ -9,27 +10,102 @@ class Batalha
     private int $recompensa;
     private array $eventos = [];
 
+    private int $limiteItens;
+    private int $itensUsadosJogador = 0;
+    private int $itensUsadosNpc = 0;
+
     public function __construct(
         int $id,
         int $perfilId,
         int $npcId,
         string $resultado = 'em_andamento',
-        int $recompensa = 0
+        int $recompensa = 0,
+        string $dificuldade = 'facil'
     ) {
         $this->id = $id;
         $this->perfilId = $perfilId;
         $this->npcId = $npcId;
         $this->resultado = $resultado;
         $this->recompensa = max(0, $recompensa);
+
+        $limites = [
+            'facil' => 3,
+            'medio' => 5,
+            'dificil' => 7
+        ];
+
+        if (!isset($limites[$dificuldade])) {
+            throw new InvalidArgumentException(
+                'Dificuldade de batalha invalida.'
+            );
+        }
+
+        $this->limiteItens = $limites[$dificuldade];
     }
 
+    // registra os acontecimentos da batalha
     public function registrarEvento(string $descricao): void
     {
-        if ($this->resultado === 'em_andamento') {
+        if ($this->estaEmAndamento()) {
             $this->eventos[] = $descricao;
         }
     }
 
+    // verifica se o participante ainda pode usar itens
+    public function podeUsarItem(string $participante): bool
+    {
+        if (!$this->estaEmAndamento()) {
+            return false;
+        }
+
+        if ($participante === 'jogador') {
+            return $this->itensUsadosJogador < $this->limiteItens;
+        }
+
+        if ($participante === 'npc') {
+            return $this->itensUsadosNpc < $this->limiteItens;
+        }
+
+        return false;
+    }
+
+    // registra um item utilizado pelo jogador ou npc
+    public function registrarUsoItem(string $participante): bool
+    {
+        if (!$this->podeUsarItem($participante)) {
+            return false;
+        }
+
+        if ($participante === 'jogador') {
+            $this->itensUsadosJogador++;
+        } elseif ($participante === 'npc') {
+            $this->itensUsadosNpc++;
+        }
+
+        return true;
+    }
+
+    // informa quantos itens ainda podem ser utilizados
+    public function getItensRestantes(string $participante): int
+    {
+        if ($participante === 'jogador') {
+            return max(
+                0,
+                $this->limiteItens - $this->itensUsadosJogador
+            );
+        }
+
+        if ($participante === 'npc') {
+            return max(
+                0,
+                $this->limiteItens - $this->itensUsadosNpc
+            );
+        }
+
+        return 0;
+    }
+
+    // finaliza a batalha
     public function finalizar(string $resultado): bool
     {
         $resultadosPermitidos = [
@@ -39,7 +115,7 @@ class Batalha
         ];
 
         if (
-            $this->resultado !== 'em_andamento' ||
+            !$this->estaEmAndamento() ||
             !in_array($resultado, $resultadosPermitidos, true)
         ) {
             return false;
@@ -50,6 +126,7 @@ class Batalha
         return true;
     }
 
+    // verifica se a batalha ainda esta acontecendo
     public function estaEmAndamento(): bool
     {
         return $this->resultado === 'em_andamento';
@@ -83,5 +160,20 @@ class Batalha
     public function getEventos(): array
     {
         return $this->eventos;
+    }
+
+    public function getLimiteItens(): int
+    {
+        return $this->limiteItens;
+    }
+
+    public function getItensUsadosJogador(): int
+    {
+        return $this->itensUsadosJogador;
+    }
+
+    public function getItensUsadosNpc(): int
+    {
+        return $this->itensUsadosNpc;
     }
 }
