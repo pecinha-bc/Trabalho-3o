@@ -1,10 +1,11 @@
-
 <?php
-require_once __DIR__ . '/app/conexao.php';
+
+require_once __DIR__ . '/conexao.php';
 
 try {
-    echo "Arquivo de conexao carregado com sucesso!";
+    Conexao::conectar();
+    echo 'Conexao com o banco de dados realizada com sucesso!';
 } catch (Throwable $e) {
-    echo "Erro na conexao: " . $e->getMessage();
+    http_response_code(500);
+    echo 'Falha ao conectar ao banco de dados.';
 }
-?>

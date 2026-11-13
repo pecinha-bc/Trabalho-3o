@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS item;
 DROP TABLE IF EXISTS npc_pokemon;
 DROP TABLE IF EXISTS pokemon_perfil;
 DROP TABLE IF EXISTS npc;
+DROP TABLE IF EXISTS kit_inicial_entregue;
 DROP TABLE IF EXISTS perfil;
 DROP TABLE IF EXISTS pokemon;
 DROP TABLE IF EXISTS usuario;
@@ -97,6 +98,12 @@ CREATE TABLE pokemon_perfil (
     CHECK (defesa IS NULL OR defesa > 0),
     CHECK (velocidade IS NULL OR velocidade > 0),
     CHECK (hp_atual IS NULL OR hp_maximo IS NULL OR hp_atual <= hp_maximo)
+);
+
+CREATE TABLE kit_inicial_entregue (
+    perfil_id INT PRIMARY KEY,
+    data_entrega TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (perfil_id) REFERENCES perfil(id)
 );
 
 CREATE TABLE npc (
@@ -469,30 +476,23 @@ FOR EACH ROW
 BEGIN
     IF OLD.resultado = 'em_andamento'
        AND NEW.resultado IN ('vitoria', 'derrota', 'empate') THEN
-
+        -- cada combate termina com a equipe totalmente recuperada
         UPDATE pokemon_perfil pp
-        INNER JOIN batalha_pokemon bp
-            ON bp.pokemon_perfil_id = pp.id
-        SET
-            pp.hp_atual = bp.hp_atual,
-            pp.hp_maximo = bp.hp_maximo,
-            pp.status = bp.status
+        INNER JOIN batalha_pokemon bp ON bp.pokemon_perfil_id = pp.id
+        SET pp.hp_atual = pp.hp_maximo,
+            pp.status = 'nenhum'
         WHERE bp.batalha_id = NEW.id
           AND bp.pokemon_perfil_id IS NOT NULL;
 
         UPDATE npc_pokemon np
-        INNER JOIN batalha_pokemon bp
-            ON bp.npc_pokemon_id = np.id
-        SET
-            np.hp_atual = bp.hp_atual,
-            np.hp_maximo = bp.hp_maximo,
-            np.status = bp.status
+        INNER JOIN batalha_pokemon bp ON bp.npc_pokemon_id = np.id
+        SET np.hp_atual = np.hp_maximo,
+            np.status = 'nenhum'
         WHERE bp.batalha_id = NEW.id
           AND bp.npc_pokemon_id IS NOT NULL;
 
         IF NEW.resultado = 'vitoria' AND NEW.recompensa > 0 THEN
-            UPDATE perfil
-            SET saldo = saldo + NEW.recompensa
+            UPDATE perfil SET saldo = saldo + NEW.recompensa
             WHERE id = NEW.perfil_id;
         END IF;
     END IF;

@@ -13,28 +13,55 @@ class JogadorRepositorio
         $this->pdo = Conexao::conectar();
     }
 
+    // cria o perfil com kit inicial em uma transacao unica
     public function criarPerfil(int $usuarioId, string $nome): int
     {
         $nome = trim($nome);
-
         if ($usuarioId <= 0 || $nome === '') {
-            throw new InvalidArgumentException(
-                'Usuario e nome do perfil sao obrigatorios.'
-            );
+            throw new InvalidArgumentException('Usuario e nome do perfil sao obrigatorios.');
         }
 
-        $sql = "
-            INSERT INTO perfil (usuario_id, nome, saldo)
-            VALUES (:usuario_id, :nome, 0)
-        ";
+        $this->pdo->beginTransaction();
+        try {
+            $consulta = $this->pdo->prepare(
+                'INSERT INTO perfil (usuario_id, nome, saldo) VALUES (:usuario, :nome, 100)'
+            );
+            $consulta->execute([':usuario' => $usuarioId, ':nome' => $nome]);
+            $perfilId = (int) $this->pdo->lastInsertId();
 
-        $consulta = $this->pdo->prepare($sql);
-        $consulta->execute([
-            ':usuario_id' => $usuarioId,
-            ':nome' => $nome
-        ]);
+            $consulta = $this->pdo->prepare(
+                "SELECT id, nome FROM item WHERE nome IN ('Pocao', 'Antidoto')"
+            );
+            $consulta->execute();
+            $itens = $consulta->fetchAll();
+            if (count($itens) !== 2) {
+                throw new RuntimeException('Importe os dados iniciais antes de criar perfis.');
+            }
 
-        return (int) $this->pdo->lastInsertId();
+            $inserir = $this->pdo->prepare(
+                'INSERT INTO inventario (perfil_id, item_id, quantidade) VALUES (:perfil, :item, :qtd)'
+            );
+            foreach ($itens as $item) {
+                $inserir->execute([
+                    ':perfil' => $perfilId,
+                    ':item' => (int) $item['id'],
+                    ':qtd' => $item['nome'] === 'Pocao' ? 2 : 1
+                ]);
+            }
+
+            // impede que a migracao opcional entregue o kit uma segunda vez
+            $consulta = $this->pdo->prepare(
+                'INSERT INTO kit_inicial_entregue (perfil_id) VALUES (:id)'
+            );
+            $consulta->execute([':id' => $perfilId]);
+            $this->pdo->commit();
+            return $perfilId;
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     public function buscarPorId(int $id): ?Jogador

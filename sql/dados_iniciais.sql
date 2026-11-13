@@ -65,104 +65,165 @@ SET p.evolui_para_id = e.id WHERE p.nome = 'Magnemite';
 UPDATE pokemon p JOIN pokemon e ON e.nome = 'Electivire'
 SET p.evolui_para_id = e.id WHERE p.nome = 'Electabuzz';
 
--- ataques comuns e especiais
+-- ataques e associacoes: um neutro e dois elementais por especie
 INSERT INTO ataque (nome, tipo, poder_base, status_causado, chance_status) VALUES
-('Arranhao', 'normal', 8, 'nenhum', 0),
-('Mordida', 'normal', 10, 'nenhum', 0),
-('Brasa', 'fogo', 15, 'queimadura', 20),
 ('Investida', 'normal', 8, 'nenhum', 0),
-('Lanca-Chamas', 'fogo', 15, 'queimadura', 30),
-('Jato d''Agua', 'agua', 15, 'nenhum', 0),
-('Cabecada', 'normal', 10, 'nenhum', 0),
-('Pancada', 'normal', 10, 'nenhum', 0),
-('Folha Navalha', 'planta', 15, 'nenhum', 0),
-('Chicote', 'normal', 8, 'nenhum', 0),
-('Choque do Trovao', 'eletrico', 15, 'paralisia', 20);
+('Brasa', 'fogo', 13, 'queimadura', 30),
+('Lanca-Chamas', 'fogo', 21, 'queimadura', 15),
+('Presas de Fogo', 'fogo', 17, 'queimadura', 25),
+('Giro de Fogo', 'fogo', 16, 'queimadura', 20),
+('Jato d''Agua', 'agua', 20, 'nenhum', 0),
+('Jato Gelado', 'agua', 13, 'congelamento', 15),
+('Onda d''Agua', 'agua', 17, 'nenhum', 0),
+('Rajada de Bolhas', 'agua', 18, 'nenhum', 0),
+('Chicote de Vinha', 'planta', 19, 'nenhum', 0),
+('Po Sonifero', 'planta', 9, 'sono', 20),
+('Absorver', 'planta', 17, 'nenhum', 0),
+('Esporos Toxicos', 'planta', 10, 'veneno', 30),
+('Folha Navalha', 'planta', 21, 'nenhum', 0),
+('Choque do Trovao', 'eletrico', 15, 'paralisia', 25),
+('Raio', 'eletrico', 22, 'paralisia', 10),
+('Onda Eletrica', 'eletrico', 10, 'paralisia', 40),
+('Soco Trovao', 'eletrico', 19, 'paralisia', 20);
 
--- associa tres ataques a cada pokemon inicial
+-- cada especie inicial conhece tres ataques
 INSERT INTO pokemon_ataque (pokemon_id, ataque_id, posicao)
 SELECT p.id, a.id, x.posicao
 FROM (
-    SELECT 'Charmander' pokemon, 'Arranhao' ataque, 1 posicao UNION ALL
-    SELECT 'Charmander', 'Mordida', 2 UNION ALL
-    SELECT 'Charmander', 'Brasa', 3 UNION ALL
-    SELECT 'Growlithe', 'Investida', 1 UNION ALL
-    SELECT 'Growlithe', 'Mordida', 2 UNION ALL
-    SELECT 'Growlithe', 'Lanca-Chamas', 3 UNION ALL
-    SELECT 'Vulpix', 'Investida', 1 UNION ALL
-    SELECT 'Vulpix', 'Arranhao', 2 UNION ALL
-    SELECT 'Vulpix', 'Brasa', 3 UNION ALL
-    SELECT 'Squirtle', 'Investida', 1 UNION ALL
-    SELECT 'Squirtle', 'Mordida', 2 UNION ALL
-    SELECT 'Squirtle', 'Jato d''Agua', 3 UNION ALL
-    SELECT 'Psyduck', 'Arranhao', 1 UNION ALL
-    SELECT 'Psyduck', 'Cabecada', 2 UNION ALL
-    SELECT 'Psyduck', 'Jato d''Agua', 3 UNION ALL
-    SELECT 'Poliwag', 'Investida', 1 UNION ALL
-    SELECT 'Poliwag', 'Pancada', 2 UNION ALL
-    SELECT 'Poliwag', 'Jato d''Agua', 3 UNION ALL
-    SELECT 'Bulbasaur', 'Investida', 1 UNION ALL
-    SELECT 'Bulbasaur', 'Pancada', 2 UNION ALL
-    SELECT 'Bulbasaur', 'Folha Navalha', 3 UNION ALL
-    SELECT 'Oddish', 'Arranhao', 1 UNION ALL
-    SELECT 'Oddish', 'Pancada', 2 UNION ALL
-    SELECT 'Oddish', 'Folha Navalha', 3 UNION ALL
-    SELECT 'Bellsprout', 'Chicote', 1 UNION ALL
-    SELECT 'Bellsprout', 'Pancada', 2 UNION ALL
-    SELECT 'Bellsprout', 'Folha Navalha', 3 UNION ALL
-    SELECT 'Pikachu', 'Investida', 1 UNION ALL
-    SELECT 'Pikachu', 'Cabecada', 2 UNION ALL
-    SELECT 'Pikachu', 'Choque do Trovao', 3 UNION ALL
-    SELECT 'Magnemite', 'Investida', 1 UNION ALL
-    SELECT 'Magnemite', 'Pancada', 2 UNION ALL
-    SELECT 'Magnemite', 'Choque do Trovao', 3 UNION ALL
-    SELECT 'Electabuzz', 'Pancada', 1 UNION ALL
-    SELECT 'Electabuzz', 'Investida', 2 UNION ALL
-    SELECT 'Electabuzz', 'Choque do Trovao', 3
+    SELECT 'Charmander' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Charmander' AS pokemon, 'Brasa' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Charmander' AS pokemon, 'Lanca-Chamas' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Growlithe' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Growlithe' AS pokemon, 'Presas de Fogo' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Growlithe' AS pokemon, 'Lanca-Chamas' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Vulpix' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Vulpix' AS pokemon, 'Brasa' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Vulpix' AS pokemon, 'Giro de Fogo' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Squirtle' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Squirtle' AS pokemon, 'Jato d''Agua' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Squirtle' AS pokemon, 'Jato Gelado' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Psyduck' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Psyduck' AS pokemon, 'Onda d''Agua' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Psyduck' AS pokemon, 'Jato Gelado' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Poliwag' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Poliwag' AS pokemon, 'Rajada de Bolhas' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Poliwag' AS pokemon, 'Jato Gelado' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Bulbasaur' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Bulbasaur' AS pokemon, 'Chicote de Vinha' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Bulbasaur' AS pokemon, 'Po Sonifero' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Oddish' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Oddish' AS pokemon, 'Absorver' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Oddish' AS pokemon, 'Esporos Toxicos' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Bellsprout' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Bellsprout' AS pokemon, 'Folha Navalha' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Bellsprout' AS pokemon, 'Po Sonifero' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Pikachu' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Pikachu' AS pokemon, 'Choque do Trovao' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Pikachu' AS pokemon, 'Raio' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Magnemite' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Magnemite' AS pokemon, 'Choque do Trovao' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Magnemite' AS pokemon, 'Onda Eletrica' AS ataque, 3 AS posicao
+UNION ALL
+    SELECT 'Electabuzz' AS pokemon, 'Investida' AS ataque, 1 AS posicao
+UNION ALL
+    SELECT 'Electabuzz' AS pokemon, 'Soco Trovao' AS ataque, 2 AS posicao
+UNION ALL
+    SELECT 'Electabuzz' AS pokemon, 'Raio' AS ataque, 3 AS posicao
 ) x
 JOIN pokemon p ON p.nome = x.pokemon
 JOIN ataque a ON a.nome = x.ataque;
 
--- as evolucoes herdam os ataques da especie inicial
+-- os evoluidos herdam os ataques da especie inicial
 INSERT INTO pokemon_ataque (pokemon_id, ataque_id, posicao)
 SELECT evolucao.id, pa.ataque_id, pa.posicao
 FROM (
-    SELECT 'Charmander' base, 'Charmeleon' evolucao UNION ALL
-    SELECT 'Growlithe', 'Arcanine' UNION ALL
-    SELECT 'Vulpix', 'Ninetales' UNION ALL
-    SELECT 'Squirtle', 'Wartortle' UNION ALL
-    SELECT 'Psyduck', 'Golduck' UNION ALL
-    SELECT 'Poliwag', 'Poliwhirl' UNION ALL
-    SELECT 'Bulbasaur', 'Ivysaur' UNION ALL
-    SELECT 'Oddish', 'Gloom' UNION ALL
-    SELECT 'Bellsprout', 'Weepinbell' UNION ALL
-    SELECT 'Pikachu', 'Raichu' UNION ALL
-    SELECT 'Magnemite', 'Magneton' UNION ALL
-    SELECT 'Electabuzz', 'Electivire'
+    SELECT 'Charmander' AS base, 'Charmeleon' AS evolucao
+UNION ALL
+    SELECT 'Growlithe' AS base, 'Arcanine' AS evolucao
+UNION ALL
+    SELECT 'Vulpix' AS base, 'Ninetales' AS evolucao
+UNION ALL
+    SELECT 'Squirtle' AS base, 'Wartortle' AS evolucao
+UNION ALL
+    SELECT 'Psyduck' AS base, 'Golduck' AS evolucao
+UNION ALL
+    SELECT 'Poliwag' AS base, 'Poliwhirl' AS evolucao
+UNION ALL
+    SELECT 'Bulbasaur' AS base, 'Ivysaur' AS evolucao
+UNION ALL
+    SELECT 'Oddish' AS base, 'Gloom' AS evolucao
+UNION ALL
+    SELECT 'Bellsprout' AS base, 'Weepinbell' AS evolucao
+UNION ALL
+    SELECT 'Pikachu' AS base, 'Raichu' AS evolucao
+UNION ALL
+    SELECT 'Magnemite' AS base, 'Magneton' AS evolucao
+UNION ALL
+    SELECT 'Electabuzz' AS base, 'Electivire' AS evolucao
 ) mapa
 JOIN pokemon base ON base.nome = mapa.base
 JOIN pokemon evolucao ON evolucao.nome = mapa.evolucao
 JOIN pokemon_ataque pa ON pa.pokemon_id = base.id;
 
--- treinadores npc e recompensas
+-- treinadores npc e recompensas (+150% sobre os valores iniciais)
 INSERT INTO npc (nome, dificuldade, recompensa) VALUES
-('Treinador iniciante', 'facil', 50),
-('Treinador experiente', 'medio', 100),
-('Treinador especialista', 'dificil', 200);
+('Treinador iniciante', 'facil', 125),
+('Treinador experiente', 'medio', 250),
+('Treinador especialista', 'dificil', 500);
 
--- equipes dos treinadores npc
+-- equipes: facil sem evolucao, medio com raichu e dificil evoluido
 INSERT INTO npc_pokemon (npc_id, pokemon_id, posicao)
 SELECT n.id, p.id, x.posicao
 FROM (
-    SELECT 'Treinador iniciante' treinador, 'Charmander' pokemon, 1 posicao UNION ALL
-    SELECT 'Treinador iniciante', 'Oddish', 2 UNION ALL
-    SELECT 'Treinador iniciante', 'Poliwag', 3 UNION ALL
-    SELECT 'Treinador experiente', 'Growlithe', 1 UNION ALL
-    SELECT 'Treinador experiente', 'Squirtle', 2 UNION ALL
-    SELECT 'Treinador experiente', 'Pikachu', 3 UNION ALL
-    SELECT 'Treinador especialista', 'Electabuzz', 1 UNION ALL
-    SELECT 'Treinador especialista', 'Bellsprout', 2 UNION ALL
-    SELECT 'Treinador especialista', 'Magnemite', 3
+    SELECT 'Treinador iniciante' AS treinador, 'Vulpix' AS pokemon, 1 AS posicao
+UNION ALL
+    SELECT 'Treinador iniciante' AS treinador, 'Oddish' AS pokemon, 2 AS posicao
+UNION ALL
+    SELECT 'Treinador iniciante' AS treinador, 'Poliwag' AS pokemon, 3 AS posicao
+UNION ALL
+    SELECT 'Treinador experiente' AS treinador, 'Growlithe' AS pokemon, 1 AS posicao
+UNION ALL
+    SELECT 'Treinador experiente' AS treinador, 'Squirtle' AS pokemon, 2 AS posicao
+UNION ALL
+    SELECT 'Treinador experiente' AS treinador, 'Raichu' AS pokemon, 3 AS posicao
+UNION ALL
+    SELECT 'Treinador especialista' AS treinador, 'Arcanine' AS pokemon, 1 AS posicao
+UNION ALL
+    SELECT 'Treinador especialista' AS treinador, 'Wartortle' AS pokemon, 2 AS posicao
+UNION ALL
+    SELECT 'Treinador especialista' AS treinador, 'Electivire' AS pokemon, 3 AS posicao
 ) x
 JOIN npc n ON n.nome = x.treinador
 JOIN pokemon p ON p.nome = x.pokemon;
@@ -184,65 +245,13 @@ INSERT INTO item (nome, preco, tipo_efeito, valor_efeito, status_removido, apare
 ('Full Heal', 80, 'cura_status', 0, 'todos', TRUE, TRUE),
 ('Item de Evolucao', 200, 'evolucao', 1, 'nenhum', TRUE, FALSE);
 
--- inventario inicial dos treinadores npc
+-- os tres npc possuem acesso aos 12 itens de batalha, por combate
 INSERT INTO inventario_npc (npc_id, item_id, quantidade)
-SELECT n.id, i.id, x.quantidade
-FROM (
-    -- treinador facil
-    SELECT 'Treinador iniciante' AS treinador,
-           'Pocao' AS item, 2 AS quantidade
-    UNION ALL
-    SELECT 'Treinador iniciante', 'Super Pocao', 1
-    UNION ALL
-    SELECT 'Treinador iniciante', 'Antidoto', 1
-    UNION ALL
-    SELECT 'Treinador iniciante', 'Burn Heal', 1
-
-    -- treinador medio
-    UNION ALL
-    SELECT 'Treinador experiente', 'Pocao', 2
-    UNION ALL
-    SELECT 'Treinador experiente', 'Super Pocao', 2
-    UNION ALL
-    SELECT 'Treinador experiente', 'Hiper Pocao', 1
-    UNION ALL
-    SELECT 'Treinador experiente', 'Reviver', 1
-    UNION ALL
-    SELECT 'Treinador experiente', 'Antidoto', 1
-    UNION ALL
-    SELECT 'Treinador experiente', 'Burn Heal', 1
-    UNION ALL
-    SELECT 'Treinador experiente', 'Ice Heal', 1
-    UNION ALL
-    SELECT 'Treinador experiente', 'Awakening', 1
-    UNION ALL
-    SELECT 'Treinador experiente', 'Paralyze Heal', 1
-
-    -- treinador dificil
-    UNION ALL
-    SELECT 'Treinador especialista', 'Pocao', 2
-    UNION ALL
-    SELECT 'Treinador especialista', 'Super Pocao', 2
-    UNION ALL
-    SELECT 'Treinador especialista', 'Hiper Pocao', 2
-    UNION ALL
-    SELECT 'Treinador especialista', 'Pocao Maxima', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Restauracao Total', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Reviver', 2
-    UNION ALL
-    SELECT 'Treinador especialista', 'Antidoto', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Burn Heal', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Ice Heal', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Awakening', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Paralyze Heal', 1
-    UNION ALL
-    SELECT 'Treinador especialista', 'Full Heal', 1
-) x
-JOIN npc n ON n.nome = x.treinador
-JOIN item i ON i.nome = x.item;
+SELECT n.id, i.id, CASE
+    WHEN i.nome = 'Pocao' THEN 2
+    WHEN i.nome = 'Reviver' AND n.dificuldade <> 'facil' THEN 2
+    ELSE 1
+END AS quantidade
+FROM npc n
+CROSS JOIN item i
+WHERE i.tipo_efeito <> 'evolucao' AND i.aparece_inventario = TRUE;
