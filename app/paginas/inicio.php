@@ -32,7 +32,7 @@ function escapar($valor): string
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Menu Inicial — MonstroBolso</title>
 <link rel="stylesheet" href="../assets/css/monstrobolso.css?v=6">
-<link rel="stylesheet" href="../assets/css/tema-final.css?v=11">
+<link rel="stylesheet" href="../assets/css/tema-final.css?v=12">
 </head>
 <body class="mb-body mb-scene-menu">
 <main class="mb-approved-menu" aria-label="Menu Inicial">
