@@ -13,7 +13,7 @@ class BatalhaRepositorio
         $this->pdo = Conexao::conectar();
     }
 
-    // cria uma batalha para o perfil e o npc
+    
     public function criar(int $perfilId, int $npcId): int
     {
         if ($perfilId <= 0 || $npcId <= 0) {
@@ -39,7 +39,7 @@ class BatalhaRepositorio
         return (int) $this->pdo->lastInsertId();
     }
 
-    // busca uma batalha e a dificuldade do treinador
+    
     public function buscarPorId(int $id): ?Batalha
     {
         $sql = "
@@ -67,7 +67,7 @@ class BatalhaRepositorio
         return $this->criarObjeto($dados);
     }
 
-    // lista o historico de batalhas do perfil
+    
     public function listarPorPerfil(int $perfilId): array
     {
         $sql = "
@@ -96,7 +96,7 @@ class BatalhaRepositorio
         return $batalhas;
     }
 
-    // busca a batalha em andamento de um perfil
+    
     public function buscarEmAndamento(
         int $perfilId
     ): ?Batalha {
@@ -128,7 +128,7 @@ class BatalhaRepositorio
         return $this->criarObjeto($dados);
     }
 
-    // finaliza a batalha e aciona os gatilhos do banco
+    
     public function finalizar(
         int $batalhaId,
         string $resultado,
@@ -165,7 +165,7 @@ class BatalhaRepositorio
         return $consulta->rowCount() === 1;
     }
 
-    // transforma os dados do banco em objeto
+    
     private function criarObjeto(array $dados): Batalha
     {
         return new Batalha(

@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $pdo->beginTransaction();
                 try {
-                    // bloqueia o perfil contra duas iniciacoes simultaneas
+                    
                     $consulta = $pdo->prepare(
                         "SELECT id FROM perfil
                          WHERE id = :id AND usuario_id = :usuario FOR UPDATE"
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
                     }
 
-                    // o npc inicia cada batalha com hp cheio
+                    
                     $consulta = $pdo->prepare(
                         "UPDATE batalha_pokemon bp
                          INNER JOIN npc_pokemon np ON np.id = bp.npc_pokemon_id
@@ -297,203 +297,166 @@ if ($dados) {
 }
 
 ?>
-<!DOCTYPE html>
+<?php require_once __DIR__ . '/../includes/layout.php'; ?>
+<!doctype html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Combate - MonstroBolso</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px;
-               background: #f1f3f7; color: #20242b; }
-        main { max-width: 1050px; margin: auto; }
-        h1, h2 { text-align: center; }
-        .grade { display: grid; grid-template-columns: repeat(auto-fit,
-                 minmax(280px, 1fr)); gap: 18px; margin: 20px 0; }
-        .painel { background: white; padding: 20px; border-radius: 10px;
-                  border: 1px solid #ddd; }
-        .pokemon { background: #f5f7fb; padding: 12px; margin: 9px 0;
-                   border-radius: 8px; }
-        .ativo { border: 2px solid #246bd6; }
-        .barra { height: 12px; background: #ddd; border-radius: 8px;
-                 overflow: hidden; margin-top: 7px; }
-        .vida { height: 100%; background: #30a46c; }
-        .mensagem { padding: 14px; margin: 15px 0; border-radius: 7px;
-                    background: #d8ecde; }
-        .erro { background: #f8d7da; }
-        form { margin: 10px 0; }
-        button { padding: 10px 15px; background: #246bd6;
-                 color: white; border: 0; border-radius: 6px; cursor: pointer; }
-        button:disabled { background: #aaa; cursor: not-allowed; }
-        select { padding: 9px; max-width: 100%; margin: 5px 0; }
-        .historico { max-height: 300px; overflow-y: auto; }
-        .historico p { border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        a { color: #246bd6; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Combate — MonstroBolso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;600;700&family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/combate-if.css?v=1">
 </head>
-<body>
-<main>
-    <h1>MonstroBolso</h1>
-    <h2>Combate</h2>
-    <p><strong>Jogador:</strong> <?= escapar($perfil->getNome()) ?></p>
-    <p><strong>Adversario:</strong> <?= escapar($npc['nome']) ?></p>
+<body class="if-page">
+<main class="if-shell">
+  <header class="if-header">
+    <a class="if-brand" href="inicio.php">MonstroBolso</a>
+    <div class="if-score">
+      <span><?= escapar($perfil->getNome()) ?> <b>×</b> <?= escapar($npc['nome']) ?></span>
+      <?php if ($dados): ?>
+        <span>Turno <?= (int) $estado['turno'] ?></span>
+      <?php endif; ?>
+    </div>
+    <nav class="if-links" aria-label="Navegação">
+      <a href="batalhas.php">Treinadores</a>
+      <a href="inicio.php">Menu</a>
+    </nav>
+  </header>
 
-    <?php if ($erro !== ''): ?>
-        <div class="mensagem erro"><?= escapar($erro) ?></div>
-    <?php endif; ?>
-    <?php if ($aviso !== ''): ?>
-        <div class="mensagem"><?= escapar($aviso) ?></div>
-    <?php endif; ?>
+  <?php if ($erro !== ''): ?><p class="if-notice if-error" role="alert"><?= escapar($erro) ?></p><?php endif; ?>
+  <?php if ($aviso !== ''): ?><p class="if-notice if-success" role="status"><?= escapar($aviso) ?></p><?php endif; ?>
 
-    <?php if (!$dados): ?>
-        <p>Confira os Pokemon antes de iniciar a batalha.</p>
-        <p>Limite de itens: <strong><?= $limite ?> para cada lado</strong>.</p>
-        <p>O NPC ataca primeiro. Usar um item nao gasta seu ataque, mas somente um item por rodada e permitido.</p>
-        <div class="grade">
-            <section class="painel">
-                <h3>Sua equipe</h3>
-                <?php foreach ($equipeJogador as $p): ?>
-                    <div class="pokemon">
-                        <strong><?= escapar($p['nome']) ?></strong>
-                        HP: <?= (int) $p['hp_atual'] ?> /
-                        <?= (int) $p['hp_maximo'] ?>
-                    </div>
-                <?php endforeach; ?>
-            </section>
-            <section class="painel">
-                <h3>Equipe do NPC</h3>
-                <?php foreach ($equipeNpc as $p): ?>
-                    <div class="pokemon">
-                        <strong><?= escapar($p['nome']) ?></strong>
-                        HP: <?= (int) $p['hp_maximo'] ?>
-                    </div>
-                <?php endforeach; ?>
-            </section>
+  <?php if (!$dados): ?>
+    <section class="if-prestart if-paper">
+      <h1>Preparar combate</h1>
+      <p>Treinador adversário: <strong><?= escapar($npc['nome']) ?></strong></p>
+      <div class="if-prestart-teams">
+        <div><h2>Seus Pokémon</h2>
+          <?php foreach ($equipeJogador as $p): ?>
+            <p><?= escapar($p['nome']) ?> — HP <?= (int) $p['hp_atual'] ?>/<?= (int) $p['hp_maximo'] ?></p>
+          <?php endforeach; ?>
         </div>
-        <form method="post">
-            <input type="hidden" name="token"
-                   value="<?= escapar($_SESSION['token_combate']) ?>">
-            <input type="hidden" name="acao" value="iniciar">
-            <button type="submit">Iniciar batalha</button>
-        </form>
-    <?php else: ?>
-        <p><strong>Turno:</strong> <?= (int) $estado['turno'] ?> |
-           <strong>Itens usados:</strong>
-           jogador <?= (int) $estado['usos_jogador'] ?> / <?= $limite ?>,
-           NPC <?= (int) $estado['usos_npc'] ?> / <?= $limite ?></p>
-        <p>O NPC realiza a acao principal primeiro. Itens nao consomem o ataque, mas o jogador pode usar apenas um por rodada.</p>
-
-        <div class="grade">
-            <section class="painel">
-                <h3>Seus Pokemon</h3>
-                <?php foreach ($pokemons as $p): ?>
-                    <?php if ($p['lado'] !== 'jogador') continue; ?>
-                    <div class="pokemon <?= $p['id'] === (int) $estado['jogador_ativo']
-                        ? 'ativo' : '' ?>">
-                        <strong><?= escapar($p['nome']) ?></strong>
-                        HP: <?= $p['hp_atual'] ?> / <?= $p['hp_maximo'] ?>
-                        <div class="barra"><div class="vida" style="width:<?=
-                            $p['hp_maximo'] > 0
-                            ? (int) round(100 * $p['hp_atual'] / $p['hp_maximo'])
-                            : 0 ?>%"></div></div>
-                        <p>Status: <?= escapar($p['status']) ?></p>
-                        <?php if ($p['id'] !== (int) $estado['jogador_ativo'] &&
-                            $p['hp_atual'] > 0): ?>
-                            <form method="post">
-                                <input type="hidden" name="token"
-                                       value="<?= escapar($_SESSION['token_combate']) ?>">
-                                <input type="hidden" name="acao" value="trocar">
-                                <input type="hidden" name="referencia"
-                                       value="<?= $p['id'] ?>">
-                                <button type="submit">Trocar para este Pokemon</button>
-                            </form>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            </section>
-            <section class="painel">
-                <h3>Pokemon do adversario</h3>
-                <?php foreach ($pokemons as $p): ?>
-                    <?php if ($p['lado'] !== 'npc') continue; ?>
-                    <div class="pokemon <?= $p['id'] === (int) $estado['npc_ativo']
-                        ? 'ativo' : '' ?>">
-                        <strong><?= escapar($p['nome']) ?></strong>
-                        HP: <?= $p['hp_atual'] ?> / <?= $p['hp_maximo'] ?>
-                        <div class="barra"><div class="vida" style="width:<?=
-                            $p['hp_maximo'] > 0
-                            ? (int) round(100 * $p['hp_atual'] / $p['hp_maximo'])
-                            : 0 ?>%"></div></div>
-                        <p>Status: <?= escapar($p['status']) ?></p>
-                    </div>
-                <?php endforeach; ?>
-            </section>
+        <div><h2>Pokémon adversários</h2>
+          <?php foreach ($equipeNpc as $p): ?>
+            <p><?= escapar($p['nome']) ?> — HP <?= (int) $p['hp_maximo'] ?></p>
+          <?php endforeach; ?>
         </div>
+      </div>
+      <form method="post">
+        <input type="hidden" name="token" value="<?= escapar($_SESSION['token_combate']) ?>">
+        <input type="hidden" name="acao" value="iniciar">
+        <button class="if-button if-primary" type="submit">Iniciar combate</button>
+      </form>
+    </section>
+  <?php else: ?>
+    <section class="if-view" aria-label="Ginásio do Instituto Federal">
+      <div class="if-scene">
+        <img class="if-gym" src="../assets/imagens/ginasio-if.webp" alt="Ginásio com o símbolo do Instituto Federal no telão e campo de batalha amarelo">
 
-        <div class="grade">
-            <section class="painel">
-                <h3>Ataques de <?= escapar($ativoJogador['nome'] ?? '') ?></h3>
-                <?php foreach ($ataques as $a): ?>
-                    <form method="post">
-                        <input type="hidden" name="token"
-                               value="<?= escapar($_SESSION['token_combate']) ?>">
-                        <input type="hidden" name="acao" value="atacar">
-                        <input type="hidden" name="referencia"
-                               value="<?= (int) $a['id'] ?>">
-                        <button type="submit">
-                            <?= escapar($a['nome']) ?>
-                            (poder <?= (int) $a['poder_base'] ?>)
-                        </button>
-                    </form>
-                <?php endforeach; ?>
-            </section>
-            <section class="painel">
-                <h3>Usar item</h3>
-                <?php if ((int) $estado['usos_jogador'] >= $limite): ?>
-                    <p>Voce atingiu o limite de itens nesta batalha.</p>
-                <?php elseif ((int) ($estado['item_turno_jogador'] ?? 0) === (int) $estado['turno']): ?>
-                    <p>Voce ja usou um item nesta rodada. Ataque ou troque de Pokemon para continuar.</p>
-                <?php elseif (!$inventario): ?>
-                    <p>Voce nao possui itens de batalha. Compre na loja.</p>
-                <?php else: ?>
-                    <form method="post">
-                        <input type="hidden" name="token"
-                               value="<?= escapar($_SESSION['token_combate']) ?>">
-                        <input type="hidden" name="acao" value="item">
-                        <label>Item:</label>
-                        <select name="referencia" required>
-                            <?php foreach ($inventario as $item): ?>
-                                <option value="<?= (int) $item['id'] ?>">
-                                    <?= escapar($item['nome']) ?>
-                                    (<?= (int) $item['quantidade'] ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p><label>Pokemon:</label></p>
-                        <select name="alvo_id" required>
-                            <?php foreach ($pokemons as $p): ?>
-                                <?php if ($p['lado'] !== 'jogador') continue; ?>
-                                <option value="<?= $p['id'] ?>">
-                                    <?= escapar($p['nome']) ?>
-                                    (HP <?= $p['hp_atual'] ?>/<?= $p['hp_maximo'] ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p><button type="submit">Utilizar item</button></p>
-                    </form>
-                <?php endif; ?>
-            </section>
+        <?php if ($ativoNpc): ?>
+          <img class="if-pokemon if-pokemon-enemy" src="<?= mbSeguro(mbImagemPokemon((string) $ativoNpc['nome'])) ?>" alt="<?= escapar($ativoNpc['nome']) ?> no chão do lado adversário" onerror="this.onerror=null;this.src='../assets/imagens/pokemon-indisponivel.svg'">
+          <div class="if-hp if-hp-enemy">
+            <div class="if-hp-title"><strong><?= escapar($ativoNpc['nome']) ?></strong><span><?= escapar(ucfirst($ativoNpc['tipo'] ?? '')) ?></span></div>
+            <div class="if-hp-track" role="progressbar" aria-label="HP do adversário" aria-valuemin="0" aria-valuemax="<?= (int) $ativoNpc['hp_maximo'] ?>" aria-valuenow="<?= (int) $ativoNpc['hp_atual'] ?>">
+              <span style="width:<?= (int) $ativoNpc['hp_maximo'] > 0 ? max(0, min(100, round(100 * $ativoNpc['hp_atual'] / $ativoNpc['hp_maximo']))) : 0 ?>%"></span>
+            </div>
+            <small>HP <?= (int) $ativoNpc['hp_atual'] ?>/<?= (int) $ativoNpc['hp_maximo'] ?> · <?= escapar($ativoNpc['status']) ?></small>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($ativoJogador): ?>
+          <img class="if-pokemon if-pokemon-player" src="<?= mbSeguro(mbImagemPokemon((string) $ativoJogador['nome'])) ?>" alt="<?= escapar($ativoJogador['nome']) ?> no chão do lado do jogador" onerror="this.onerror=null;this.src='../assets/imagens/pokemon-indisponivel.svg'">
+          <div class="if-hp if-hp-player">
+            <div class="if-hp-title"><strong><?= escapar($ativoJogador['nome']) ?></strong><span><?= escapar(ucfirst($ativoJogador['tipo'] ?? '')) ?></span></div>
+            <div class="if-hp-track" role="progressbar" aria-label="HP do seu Pokémon" aria-valuemin="0" aria-valuemax="<?= (int) $ativoJogador['hp_maximo'] ?>" aria-valuenow="<?= (int) $ativoJogador['hp_atual'] ?>">
+              <span style="width:<?= (int) $ativoJogador['hp_maximo'] > 0 ? max(0, min(100, round(100 * $ativoJogador['hp_atual'] / $ativoJogador['hp_maximo']))) : 0 ?>%"></span>
+            </div>
+            <small>HP <?= (int) $ativoJogador['hp_atual'] ?>/<?= (int) $ativoJogador['hp_maximo'] ?> · <?= escapar($ativoJogador['status']) ?></small>
+          </div>
+        <?php endif; ?>
+      </div>
+    </section>
+
+    <section class="if-controls" aria-label="Comandos do combate">
+      <div class="if-paper if-attacks">
+        <h2>Ataques</h2>
+        <div class="if-moves">
+          <?php foreach ($ataques as $ataque): ?>
+            <form method="post">
+              <input type="hidden" name="token" value="<?= escapar($_SESSION['token_combate']) ?>">
+              <input type="hidden" name="acao" value="atacar">
+              <input type="hidden" name="referencia" value="<?= (int) $ataque['id'] ?>">
+              <button type="submit" class="if-button if-move">
+                <strong><?= escapar($ataque['nome']) ?></strong>
+                <small><?= escapar(ucfirst($ataque['tipo'])) ?> · Poder <?= (int) $ataque['poder_base'] ?></small>
+              </button>
+            </form>
+          <?php endforeach; ?>
         </div>
+      </div>
 
-        <section class="painel historico">
-            <h3>Ultimos acontecimentos</h3>
-            <?php foreach ($dados['eventos'] as $evento): ?>
-                <p><?= escapar($evento['descricao']) ?></p>
-            <?php endforeach; ?>
-        </section>
-    <?php endif; ?>
+      <div class="if-paper if-items">
+        <h2>Itens <small><?= (int) $estado['usos_jogador'] ?>/<?= (int) $limite ?></small></h2>
+        <?php if ((int) $estado['usos_jogador'] >= $limite): ?>
+          <p>Limite de itens atingido.</p>
+        <?php elseif ((int) ($estado['item_turno_jogador'] ?? 0) === (int) $estado['turno']): ?>
+          <p>Item já utilizado neste turno.</p>
+        <?php elseif (!$inventario): ?>
+          <p>Não há itens de batalha disponíveis.</p>
+        <?php else: ?>
+          <form method="post" class="if-item-form">
+            <input type="hidden" name="token" value="<?= escapar($_SESSION['token_combate']) ?>">
+            <input type="hidden" name="acao" value="item">
+            <label for="item_batalha">Item</label>
+            <select id="item_batalha" name="referencia" required>
+              <?php foreach ($inventario as $item): ?>
+                <option value="<?= (int) $item['id'] ?>"><?= escapar(mbNomeItem($item)) ?> (<?= (int) $item['quantidade'] ?>)</option>
+              <?php endforeach; ?>
+            </select>
+            <label for="alvo_batalha">Pokémon</label>
+            <select id="alvo_batalha" name="alvo_id" required>
+              <?php foreach ($pokemons as $p): if ($p['lado'] !== 'jogador') continue; ?>
+                <option value="<?= (int) $p['id'] ?>"><?= escapar($p['nome']) ?> — <?= (int) $p['hp_atual'] ?>/<?= (int) $p['hp_maximo'] ?> HP</option>
+              <?php endforeach; ?>
+            </select>
+            <button class="if-button if-primary" type="submit">Usar item</button>
+          </form>
+        <?php endif; ?>
+      </div>
 
-    <p><a href="batalhas.php">Voltar para os treinadores</a></p>
-    <p><a href="inicio.php">Menu principal</a></p>
+      <div class="if-paper if-switch">
+        <h2>Trocar Pokémon</h2>
+        <div class="if-switch-list">
+          <?php foreach ($pokemons as $p): if ($p['lado'] !== 'jogador') continue; ?>
+            <div class="if-switch-entry">
+              <span><strong><?= escapar($p['nome']) ?></strong><small>HP <?= (int) $p['hp_atual'] ?>/<?= (int) $p['hp_maximo'] ?></small></span>
+              <?php if ((int) $p['id'] !== (int) $estado['jogador_ativo'] && (int) $p['hp_atual'] > 0): ?>
+                <form method="post">
+                  <input type="hidden" name="token" value="<?= escapar($_SESSION['token_combate']) ?>">
+                  <input type="hidden" name="acao" value="trocar">
+                  <input type="hidden" name="referencia" value="<?= (int) $p['id'] ?>">
+                  <button class="if-button if-switch-button" type="submit">Trocar</button>
+                </form>
+              <?php else: ?>
+                <em><?= (int) $p['id'] === (int) $estado['jogador_ativo'] ? 'Ativo' : 'Sem HP' ?></em>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+
+    <details class="if-history if-paper">
+      <summary>Histórico <span><?= !empty($dados['eventos']) ? escapar($dados['eventos'][0]['descricao']) : 'A batalha começou.' ?></span></summary>
+      <div class="if-history-list">
+        <?php foreach ($dados['eventos'] as $evento): ?>
+          <p><?= escapar($evento['descricao']) ?></p>
+        <?php endforeach; ?>
+      </div>
+    </details>
+  <?php endif; ?>
 </main>
 </body>
 </html>

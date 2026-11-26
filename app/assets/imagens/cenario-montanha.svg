@@ -13,7 +13,7 @@
   <ellipse cx="1200" cy="160" rx="420" ry="285" fill="url(#sol)"/>
   <g opacity=".7"><use href="#nuvem" transform="translate(190 196) scale(1.2)"/><use href="#nuvem" transform="translate(475 124) scale(.75)"/><use href="#nuvem" transform="translate(1050 158) scale(1.1)"/><use href="#nuvem" transform="translate(1405 230) scale(.85)"/><use href="#nuvem" transform="translate(775 285) scale(.55)"/></g>
   <path d="M0 450 L180 355 L310 430 L455 310 L600 430 L810 304 L940 419 L1110 280 L1270 420 L1460 328 L1600 415 V960 H0Z" fill="#8ca8a4" opacity=".55"/>
-  <!-- volcanic mountain, slightly offset to the right like the reference painting -->
+  
   <path d="M700 564 L1086 122 L1445 566Z" fill="url(#monte)"/>
   <path d="M884 360 L1086 122 L1272 356 L1202 344 L1150 287 L1120 300 L1095 258 L1065 289 L1024 277 L976 342Z" fill="#f7eee2"/>
   <path d="M1086 123 L1142 226 L1133 249 L1165 290 L1121 266 L1109 292 L1070 269 L1054 297 L1017 278Z" fill="#ae7772" opacity=".82"/>
@@ -26,7 +26,7 @@
   <path d="M0 820 Q380 760 621 811 Q990 897 1600 769" fill="none" stroke="#e7ebd0" stroke-width="7" opacity=".48"/>
   <path d="M0 899 Q425 846 845 897 T1640 884" fill="none" stroke="#f1ecd8" stroke-width="3" opacity=".43"/>
   <g fill="#315c54" opacity=".65"><use href="#pinheiro" transform="translate(155 487) scale(.63)"/><use href="#pinheiro" transform="translate(210 496) scale(.47)"/><use href="#pinheiro" transform="translate(285 504) scale(.55)"/><use href="#pinheiro" transform="translate(1335 533) scale(.58)"/><use href="#pinheiro" transform="translate(1483 516) scale(.7)"/><use href="#pinheiro" transform="translate(1560 498) scale(.73)"/></g>
-  <!-- branches and crimson foliage framing the left edge -->
+  
   <path d="M-45 0 Q95 85 155 248 Q163 296 138 382" fill="none" stroke="#473e38" stroke-width="36" stroke-linecap="round"/>
   <path d="M6 80 Q132 52 295 8 M70 145 Q183 138 345 70 M110 209 Q265 189 385 144" fill="none" stroke="#55423d" stroke-width="16" stroke-linecap="round"/>
   <g fill="#b85449" opacity=".95"><ellipse cx="65" cy="28" rx="122" ry="57"/><ellipse cx="209" cy="17" rx="129" ry="68"/><ellipse cx="320" cy="83" rx="105" ry="65"/><ellipse cx="48" cy="151" rx="84" ry="76"/><ellipse cx="164" cy="103" rx="106" ry="52"/></g>

@@ -13,7 +13,7 @@ class PokemonRepositorio
         $this->pdo = Conexao::conectar();
     }
 
-    // lista todos os pokemons cadastrados no banco
+    
     public function listarTodos(): array
     {
         $sql = "SELECT * FROM pokemon ORDER BY nome";
@@ -38,7 +38,7 @@ class PokemonRepositorio
         return $pokemons;
     }
 
-    // busca um pokemon pelo seu id
+    
     public function buscarPorId(int $id): ?Pokemon
     {
         $sql = "SELECT * FROM pokemon WHERE id = :id";
@@ -66,7 +66,7 @@ class PokemonRepositorio
         );
     }
 
-    // lista apenas os 12 pokemons disponiveis para escolha inicial
+    
     public function listarIniciais(): array
     {
         $nomes = [

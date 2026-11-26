@@ -1,7 +1,5 @@
 
 USE trabalho3oano;
-
--- pokemons iniciais e suas evolucoes
 INSERT INTO pokemon (nome, tipo, hp_base, ataque, defesa, velocidade, evolui_para_id) VALUES
 ('Charmander', 'fogo', 100, 52, 43, 65, NULL),
 ('Growlithe', 'fogo', 120, 70, 45, 60, NULL),
@@ -27,8 +25,6 @@ INSERT INTO pokemon (nome, tipo, hp_base, ataque, defesa, velocidade, evolui_par
 ('Raichu', 'eletrico', 130, 72, 52, 117, NULL),
 ('Magneton', 'eletrico', 130, 46, 91, 59, NULL),
 ('Electivire', 'eletrico', 169, 108, 74, 137, NULL);
-
--- relaciona cada pokemon com sua evolucao
 UPDATE pokemon p JOIN pokemon e ON e.nome = 'Charmeleon'
 SET p.evolui_para_id = e.id WHERE p.nome = 'Charmander';
 
@@ -64,8 +60,6 @@ SET p.evolui_para_id = e.id WHERE p.nome = 'Magnemite';
 
 UPDATE pokemon p JOIN pokemon e ON e.nome = 'Electivire'
 SET p.evolui_para_id = e.id WHERE p.nome = 'Electabuzz';
-
--- ataques e associacoes: um neutro e dois elementais por especie
 INSERT INTO ataque (nome, tipo, poder_base, status_causado, chance_status) VALUES
 ('Investida', 'normal', 8, 'nenhum', 0),
 ('Brasa', 'fogo', 13, 'queimadura', 30),
@@ -85,8 +79,6 @@ INSERT INTO ataque (nome, tipo, poder_base, status_causado, chance_status) VALUE
 ('Raio', 'eletrico', 22, 'paralisia', 10),
 ('Onda Eletrica', 'eletrico', 10, 'paralisia', 40),
 ('Soco Trovao', 'eletrico', 19, 'paralisia', 20);
-
--- cada especie inicial conhece tres ataques
 INSERT INTO pokemon_ataque (pokemon_id, ataque_id, posicao)
 SELECT p.id, a.id, x.posicao
 FROM (
@@ -164,8 +156,6 @@ UNION ALL
 ) x
 JOIN pokemon p ON p.nome = x.pokemon
 JOIN ataque a ON a.nome = x.ataque;
-
--- os evoluidos herdam os ataques da especie inicial
 INSERT INTO pokemon_ataque (pokemon_id, ataque_id, posicao)
 SELECT evolucao.id, pa.ataque_id, pa.posicao
 FROM (
@@ -196,14 +186,10 @@ UNION ALL
 JOIN pokemon base ON base.nome = mapa.base
 JOIN pokemon evolucao ON evolucao.nome = mapa.evolucao
 JOIN pokemon_ataque pa ON pa.pokemon_id = base.id;
-
--- treinadores npc e recompensas (+150% sobre os valores iniciais)
 INSERT INTO npc (nome, dificuldade, recompensa) VALUES
 ('Treinador iniciante', 'facil', 125),
 ('Treinador experiente', 'medio', 250),
 ('Treinador especialista', 'dificil', 500);
-
--- equipes: facil sem evolucao, medio com raichu e dificil evoluido
 INSERT INTO npc_pokemon (npc_id, pokemon_id, posicao)
 SELECT n.id, p.id, x.posicao
 FROM (
@@ -227,9 +213,6 @@ UNION ALL
 ) x
 JOIN npc n ON n.nome = x.treinador
 JOIN pokemon p ON p.nome = x.pokemon;
-
--- itens da loja
--- valores de cura em percentual do hp maximo
 INSERT INTO item (nome, preco, tipo_efeito, valor_efeito, status_removido, aparece_loja, aparece_inventario) VALUES
 ('Pocao', 30, 'cura_hp', 20, 'nenhum', TRUE, TRUE),
 ('Super Pocao', 60, 'cura_hp', 40, 'nenhum', TRUE, TRUE),
@@ -244,8 +227,6 @@ INSERT INTO item (nome, preco, tipo_efeito, valor_efeito, status_removido, apare
 ('Paralyze Heal', 25, 'cura_status', 0, 'paralisia', TRUE, TRUE),
 ('Full Heal', 80, 'cura_status', 0, 'todos', TRUE, TRUE),
 ('Item de Evolucao', 200, 'evolucao', 1, 'nenhum', TRUE, FALSE);
-
--- os tres npc possuem acesso aos 12 itens de batalha, por combate
 INSERT INTO inventario_npc (npc_id, item_id, quantidade)
 SELECT n.id, i.id, CASE
     WHEN i.nome = 'Pocao' THEN 2

@@ -24,57 +24,30 @@ function escapar($valor): string
     return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 }
 
-$opcoes = [
-    ['pagina' => 'equipe.php', 'icone' => '◉', 'titulo' => 'Minha equipe', 'descricao' => 'Veja seus três Pokémon, atributos e ataques.'],
-    ['pagina' => 'batalhas.php', 'icone' => '⚔', 'titulo' => 'Batalhas', 'descricao' => 'Desafie os treinadores e ganhe recompensas.'],
-    ['pagina' => 'loja.php', 'icone' => '▣', 'titulo' => 'Loja', 'descricao' => 'Compre itens para suas próximas batalhas.'],
-    ['pagina' => 'inventario.php', 'icone' => '▤', 'titulo' => 'Inventário', 'descricao' => 'Confira os itens disponíveis no seu perfil.'],
-    ['pagina' => 'evolucao.php', 'icone' => '✦', 'titulo' => 'Evolução', 'descricao' => 'Evolua seus Pokémon com o item especial.'],
-    ['pagina' => 'pokedex.php', 'icone' => '▧', 'titulo' => 'Pokédex', 'descricao' => 'Conheça os Pokémon, elementos e movimentos.'],
-];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu principal — MonstroBolso</title>
-    <link rel="stylesheet" href="../assets/css/monstrobolso.css?v=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu Inicial — MonstroBolso</title>
+<link rel="stylesheet" href="../assets/css/monstrobolso.css?v=6">
+<link rel="stylesheet" href="../assets/css/tema-final.css?v=11">
 </head>
-<body class="mb-body">
-<div class="mb-shell">
-    <header class="mb-header">
-        <a class="mb-brand" href="inicio.php" aria-label="Voltar ao início do MonstroBolso">
-            <span class="mb-brand-mark" aria-hidden="true">●</span>
-            <span class="mb-brand-text">MonstroBolso</span>
-        </a>
-        <div class="mb-top-actions">
-            <span class="mb-pill">Treinador: <?= escapar($perfil->getNome()) ?></span>
-            <span class="mb-pill">✦ <?= (int) $perfil->getSaldo() ?> Pokédólares</span>
-        </div>
-    </header>
-
-    <main>
-        <section class="mb-menu-hero">
-            <h1 class="mb-heading">Bem-vindo à sua jornada!</h1>
-            <p class="mb-description">Escolha para onde deseja ir e prepare sua equipe para a aventura.</p>
-        </section>
-
-        <nav class="mb-menu-grid" aria-label="Menu principal">
-            <?php foreach ($opcoes as $opcao): ?>
-                <a class="mb-paper mb-menu-link" href="<?= escapar($opcao['pagina']) ?>">
-                    <span class="mb-menu-icon" aria-hidden="true"><?= escapar($opcao['icone']) ?></span>
-                    <strong><?= escapar($opcao['titulo']) ?></strong>
-                    <small><?= escapar($opcao['descricao']) ?></small>
-                </a>
-            <?php endforeach; ?>
-        </nav>
-
-        <div class="mb-menu-bottom">
-            <a class="mb-button mb-button-light" href="escolher_perfil.php">Trocar perfil</a>
-            <a class="mb-button" href="logout.php">Sair da conta</a>
-        </div>
-    </main>
+<body class="mb-body mb-scene-menu">
+<main class="mb-approved-menu" aria-label="Menu Inicial">
+<div class="mb-menu-status"><span>Treinador: <?= escapar($perfil->getNome()) ?></span><span>✦ <?= (int) $perfil->getSaldo() ?> Pokédólares</span><a href="escolher_perfil.php">Trocar perfil</a><a href="logout.php">Sair</a></div>
+<div class="mb-menu-visual">
+<img src="../assets/imagens/menu-aprovado.webp" alt="MonstroBolso — Menu Inicial: Minha Equipe, Batalhas, Loja, Inventário, Evolução e Pokedex" width="1671" height="941">
+<nav class="mb-menu-hotspots" aria-label="Escolha uma área do jogo">
+<a class="mb-hotspot mb-hotspot-1" href="equipe.php" aria-label="Minha Equipe"><span>Minha Equipe</span></a>
+<a class="mb-hotspot mb-hotspot-2" href="batalhas.php" aria-label="Batalhas"><span>Batalhas</span></a>
+<a class="mb-hotspot mb-hotspot-3" href="loja.php" aria-label="Loja"><span>Loja</span></a>
+<a class="mb-hotspot mb-hotspot-4" href="inventario.php" aria-label="Inventário"><span>Inventário</span></a>
+<a class="mb-hotspot mb-hotspot-5" href="evolucao.php" aria-label="Evolução"><span>Evolução</span></a>
+<a class="mb-hotspot mb-hotspot-6" href="pokedex.php" aria-label="Pokedex"><span>Pokedex</span></a>
+</nav>
 </div>
+</main>
 </body>
 </html>

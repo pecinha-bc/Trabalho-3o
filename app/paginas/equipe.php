@@ -1,6 +1,6 @@
 <?php
 
-// pagina visual da equipe: mantem a validacao e a persistencia originais
+
 require_once __DIR__ . '/../includes/sessao.php';
 require_once __DIR__ . '/../repositorios/jogadorrepositorio.php';
 require_once __DIR__ . '/../repositorios/pokemonrepositorio.php';
@@ -36,8 +36,8 @@ function escapar($valor): string
     return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 }
 
-// numero nacional da especie para exibir a ilustracao
-// o pokemon continua sendo identificado pelo id real do banco
+
+
 $numeroPokedex = [
     'Charmander' => 4, 'Charmeleon' => 5,
     'Growlithe' => 58, 'Arcanine' => 59,
@@ -96,7 +96,7 @@ try {
 
             if ($erro === '') {
                 try {
-                    // a transacao, os IDs permitidos e o INSERT ficam no repositorio existente
+                    
                     $equipeRepositorio->criarEquipeInicial($perfilId, $ids);
                     $_SESSION['token_equipe'] = bin2hex(random_bytes(32));
                     header('Location: equipe.php?criada=1');
@@ -118,7 +118,7 @@ try {
     $equipe = $equipeRepositorio->listarPorPerfil($perfilId);
     $visualizacao = count($equipe) > 0;
 
-    // consulta os tres ataques de cada especie para exibir no painel
+    
     $pdo = Conexao::conectar();
     $consultaAtaques = $pdo->query(
         'SELECT pa.pokemon_id, a.nome, a.tipo, a.poder_base '

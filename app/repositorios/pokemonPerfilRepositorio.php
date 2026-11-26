@@ -13,7 +13,7 @@ class PokemonPerfilRepositorio
         $this->pdo = Conexao::conectar();
     }
 
-    // lista os pokemons pertencentes ao perfil
+    
     public function listarPorPerfil(int $perfilId): array
     {
         $sql = "
@@ -38,7 +38,7 @@ class PokemonPerfilRepositorio
         return $pokemons;
     }
 
-    // busca um pokemon do perfil pelo id
+    
     public function buscarPorId(int $id): ?PokemonPerfil
     {
         $sql = "
@@ -59,7 +59,7 @@ class PokemonPerfilRepositorio
         return $this->criarObjeto($dados);
     }
 
-    // verifica se o perfil ja possui pokemons
+    
     public function possuiEquipe(int $perfilId): bool
     {
         $sql = "
@@ -76,7 +76,7 @@ class PokemonPerfilRepositorio
         return (int) $consulta->fetchColumn() > 0;
     }
 
-    // registra os tres pokemons iniciais
+    
     public function criarEquipeInicial(
         int $perfilId,
         array $pokemonIds
@@ -108,7 +108,7 @@ class PokemonPerfilRepositorio
         try {
             $this->pdo->beginTransaction();
 
-            // bloqueia o perfil durante a escolha
+            
             $consultaPerfil = $this->pdo->prepare(
                 "SELECT id FROM perfil WHERE id = :id FOR UPDATE"
             );
@@ -129,7 +129,7 @@ class PokemonPerfilRepositorio
                 );
             }
 
-            // confirma que os tres pokemons sao permitidos
+            
             $marcadores = implode(
                 ',',
                 array_fill(0, count($nomesPermitidos), '?')
@@ -157,7 +157,7 @@ class PokemonPerfilRepositorio
                 }
             }
 
-            // o trigger do banco inicializa os atributos
+            
             $sql = "
                 INSERT INTO pokemon_perfil
                     (perfil_id, pokemon_id)
@@ -187,7 +187,7 @@ class PokemonPerfilRepositorio
         }
     }
 
-    // transforma os dados do banco em objeto
+    
     private function criarObjeto(array $dados): PokemonPerfil
     {
         return new PokemonPerfil(
@@ -200,7 +200,6 @@ class PokemonPerfilRepositorio
             (int) $dados['defesa'],
             (int) $dados['velocidade'],
             (int) $dados['nivel'],
-            (int) $dados['experiencia'],
             (bool) $dados['evoluiu'],
             $dados['status']
         );

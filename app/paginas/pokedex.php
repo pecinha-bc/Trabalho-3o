@@ -39,7 +39,7 @@ $rotulosTipo = [
 try {
     $pdo = Conexao::conectar();
 
-    // carrega todas as especies e suas relacoes de evolucao
+    
     $sql = "
         SELECT
             p.id, p.nome, p.tipo, p.hp_base,
@@ -59,7 +59,7 @@ try {
 
     $pokemons = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
-    // carrega os ataques de todas as especies em uma unica consulta
+    
     $sqlAtaques = "
         SELECT
             pa.pokemon_id,
@@ -81,308 +81,56 @@ try {
 }
 
 ?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokedex - MonstroBolso</title>
-    <style>
-        :root {
-            color-scheme: light;
-            --fundo: #eef2f7;
-            --texto: #192334;
-            --borda: #d9e2ed;
-            --azul: #246bd6;
-        }
+<?php require_once __DIR__ . '/../includes/layout.php'; mbAbrirPagina('Pokedex', 'Consulte as espécies, seus atributos, movimentos e evoluções.', $perfil, 'pokedex.php'); ?>
 
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            padding: 24px;
-            background: var(--fundo);
-            color: var(--texto);
-            font-family: Arial, sans-serif;
-        }
-
-        main { max-width: 1180px; margin: auto; }
-
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-        }
-
-        h1 { margin: 0 0 6px; font-size: 30px; }
-        h2 { margin: 0 0 14px; font-size: 20px; }
-        p { line-height: 1.5; }
-        .descricao { color: #536174; margin: 0; }
-
-        a.voltar {
-            display: inline-block;
-            padding: 11px 16px;
-            background: #fff;
-            border: 1px solid var(--borda);
-            border-radius: 8px;
-            color: var(--azul);
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .filtros {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--borda);
-            margin-bottom: 24px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 14px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 7px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #aab8ca;
-            border-radius: 7px;
-            background: #fff;
-            font-size: 15px;
-        }
-
-        .contador { color: #536174; margin: 0 0 18px; }
-
-        .grade {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
-            gap: 18px;
-        }
-
-        .card-pokemon {
-            background: #fff;
-            border: 1px solid var(--borda);
-            border-radius: 13px;
-            padding: 19px;
-            box-shadow: 0 3px 12px rgba(16, 35, 55, .04);
-        }
-
-        .cabecalho-card {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .nome { margin: 0; font-size: 21px; }
-
-        .numero { font-size: 13px; color: #6e7a89; }
-
-        .tipo {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 20px;
-            padding: 5px 10px;
-            margin: 10px 0 15px;
-            background: #e9eef6;
-        }
-
-        .tipo-fogo { background: #ffe1d7; color: #a13318; }
-        .tipo-agua { background: #dceeff; color: #125aa1; }
-        .tipo-planta { background: #dcf5df; color: #246b36; }
-        .tipo-eletrico { background: #fff0b4; color: #775300; }
-
-        .atributos {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .atributo {
-            background: #f3f6fa;
-            padding: 10px;
-            border-radius: 7px;
-        }
-
-        .atributo span { color: #536174; font-size: 12px; }
-        .atributo strong { display: block; font-size: 19px; margin-top: 4px; }
-
-        .evolucao {
-            background: #f6f8fa;
-            border-radius: 7px;
-            padding: 10px;
-            font-size: 13px;
-            margin-bottom: 15px;
-        }
-
-        .ataques-titulo { font-size: 15px; margin-bottom: 9px; }
-        .ataque { border-top: 1px solid #edf0f4; padding: 9px 0; }
-        .ataque:last-child { padding-bottom: 0; }
-        .ataque strong { font-size: 14px; }
-        .ataque small { display: block; color: #596779; margin-top: 4px; line-height: 1.4; }
-        .vazio { display: none; padding: 20px; text-align: center; }
-
-        @media (max-width: 620px) {
-            body { padding: 14px; }
-            .filtros { grid-template-columns: 1fr; }
-            h1 { font-size: 26px; }
-        }
-    </style>
-</head>
-<body>
-<main>
-    <header>
-        <div>
-            <h1>Pokedex MonstroBolso</h1>
-            <p class="descricao">
-                Conheca os Pokemon, seus atributos, ataques e evolucoes.
-            </p>
-            <p class="descricao">
-                Treinador: <strong><?= escapar($perfil->getNome()) ?></strong>
-            </p>
-        </div>
-        <a class="voltar" href="inicio.php">Voltar ao menu</a>
-    </header>
-
-    <section class="filtros" aria-label="Filtros da Pokedex">
-        <div>
-            <label for="busca">Buscar Pokemon pelo nome</label>
-            <input id="busca" type="search" placeholder="Ex.: Pikachu" autocomplete="off">
-        </div>
-        <div>
-            <label for="filtroTipo">Filtrar por tipo</label>
-            <select id="filtroTipo">
-                <option value="todos">Todos os tipos</option>
-                <option value="fogo">Fogo</option>
-                <option value="agua">Agua</option>
-                <option value="planta">Planta</option>
-                <option value="eletrico">Eletrico</option>
-            </select>
-        </div>
-    </section>
-
-    <p class="contador" id="contador" aria-live="polite">
-        <?= count($pokemons) ?> Pokemon encontrados
-    </p>
-
-    <div class="grade" id="grade">
-        <?php foreach ($pokemons as $pokemon): ?>
-            <?php
-                $tipo = $pokemon['tipo'];
-                $ataques = $ataquesPorPokemon[(int) $pokemon['id']] ?? [];
-            ?>
-            <article
-                class="card-pokemon"
-                data-nome="<?= escapar(strtolower($pokemon['nome'])) ?>"
-                data-tipo="<?= escapar($tipo) ?>"
-            >
-                <div class="cabecalho-card">
-                    <h2 class="nome"><?= escapar($pokemon['nome']) ?></h2>
-                    <span class="numero">#<?= (int) $pokemon['id'] ?></span>
-                </div>
-                <span class="tipo tipo-<?= escapar($tipo) ?>">
-                    <?= escapar($rotulosTipo[$tipo] ?? ucfirst($tipo)) ?>
-                </span>
-
-                <div class="atributos">
-                    <div class="atributo">
-                        <span>HP base</span>
-                        <strong><?= (int) $pokemon['hp_base'] ?></strong>
-                    </div>
-                    <div class="atributo">
-                        <span>Ataque</span>
-                        <strong><?= (int) $pokemon['ataque'] ?></strong>
-                    </div>
-                    <div class="atributo">
-                        <span>Defesa</span>
-                        <strong><?= (int) $pokemon['defesa'] ?></strong>
-                    </div>
-                    <div class="atributo">
-                        <span>Velocidade</span>
-                        <strong><?= (int) $pokemon['velocidade'] ?></strong>
-                    </div>
-                </div>
-
-                <div class="evolucao">
-                    <?php if ($pokemon['evolucao_nome'] !== null): ?>
-                        <strong>Evolui para:</strong>
-                        <?= escapar($pokemon['evolucao_nome']) ?>
-                    <?php elseif ($pokemon['origem_nome'] !== null): ?>
-                        <strong>Evolucao de:</strong>
-                        <?= escapar($pokemon['origem_nome']) ?>
-                    <?php else: ?>
-                        Sem evolucao cadastrada.
-                    <?php endif; ?>
-                </div>
-
-                <h3 class="ataques-titulo">Ataques</h3>
-                <?php if (!$ataques): ?>
-                    <p class="descricao">Nenhum ataque cadastrado.</p>
-                <?php endif; ?>
-
-                <?php foreach ($ataques as $ataque): ?>
-                    <div class="ataque">
-                        <strong><?= escapar($ataque['nome']) ?></strong>
-                        <small>
-                            Tipo: <?= escapar($rotulosTipo[$ataque['tipo']] ?? $ataque['tipo']) ?>
-                            | Poder: <?= (int) $ataque['poder_base'] ?>
-                        </small>
-                        <?php if ($ataque['status_causado'] !== 'nenhum'): ?>
-                            <small>
-                                Efeito: <?= escapar($ataque['status_causado']) ?>
-                                (<?= (int) $ataque['chance_status'] ?>% de chance)
-                            </small>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            </article>
-        <?php endforeach; ?>
-    </div>
-
-    <p class="vazio" id="vazio">Nenhum Pokemon encontrado com esses filtros.</p>
-</main>
-
+<div class="mb-pokedex-emblem"><img src="../assets/imagens/pokedex-icone.png" alt="Pokedex vermelha" width="136" height="105"></div>
+<section class="mb-paper mb-ui-card mb-ui-filter" aria-label="Filtros da Pokedex">
+ <div><label for="busca">Pesquisar espécie</label><input id="busca" type="search" autocomplete="off" placeholder="Ex.: Pikachu"></div>
+ <div><label for="filtroTipo">Elemento</label><select id="filtroTipo"><option value="todos">Todos os elementos</option><option value="fogo">Fogo</option><option value="agua">Água</option><option value="planta">Planta</option><option value="eletrico">Elétrico</option></select></div>
+</section>
+<p class="mb-ui-note" id="contador" aria-live="polite" style="display:table;margin:0 0 20px"><?= count($pokemons) ?> Pokémon encontrados</p>
+<div class="mb-ui-grid mb-ui-grid-4" id="grade">
+<?php foreach ($pokemons as $pokemon): ?>
+ <?php $tipo = $pokemon['tipo']; $ataques = $ataquesPorPokemon[(int) $pokemon['id']] ?? []; ?>
+ <article class="mb-paper mb-ui-card mb-ui-poke-search-result" data-nome="<?= escapar(strtolower($pokemon['nome'])) ?>" data-tipo="<?= escapar($tipo) ?>">
+  <div class="mb-ui-art mb-ui-art-small"><img src="<?= mbSeguro(mbImagemPokemon((string) $pokemon['nome'])) ?>" alt="<?= escapar($pokemon['nome']) ?>" loading="lazy" onerror="this.src='../assets/imagens/pokemon-indisponivel.svg';this.onerror=null"></div>
+  <div class="mb-ui-pokemon-name"><h2 style="font-size:23px"><?= escapar($pokemon['nome']) ?></h2><small>#<?= (int) $pokemon['id'] ?></small></div>
+  <span class="mb-ui-type mb-ui-type-<?= escapar($tipo) ?>"><?= escapar($rotulosTipo[$tipo] ?? ucfirst($tipo)) ?></span>
+  <div class="mb-ui-stat-grid" style="margin-top:15px"><div class="mb-ui-stat-box"><span>HP base</span><strong><?= (int) $pokemon['hp_base'] ?></strong></div><div class="mb-ui-stat-box"><span>Ataque</span><strong><?= (int) $pokemon['ataque'] ?></strong></div><div class="mb-ui-stat-box"><span>Defesa</span><strong><?= (int) $pokemon['defesa'] ?></strong></div><div class="mb-ui-stat-box"><span>Velocidade</span><strong><?= (int) $pokemon['velocidade'] ?></strong></div></div>
+  <p class="mb-ui-note" style="margin-top:14px"><?php if ($pokemon['evolucao_nome'] !== null): ?>Evolui para: <strong><?= escapar($pokemon['evolucao_nome']) ?></strong><?php elseif ($pokemon['origem_nome'] !== null): ?>Evolução de: <strong><?= escapar($pokemon['origem_nome']) ?></strong><?php else: ?>Sem evolução cadastrada.<?php endif; ?></p>
+  <h3 style="font-size:16px;margin:18px 0 8px">Movimentos</h3>
+  <?php if (!$ataques): ?><p class="mb-ui-muted">Sem ataques cadastrados.</p><?php endif; ?>
+  <?php foreach ($ataques as $ataque): ?>
+   <div class="mb-ui-attack"><strong><?= escapar($ataque['nome']) ?></strong><small><?= escapar($rotulosTipo[$ataque['tipo']] ?? $ataque['tipo']) ?> · Poder <?= (int) $ataque['poder_base'] ?></small>
+   <?php if ($ataque['status_causado'] !== 'nenhum'): ?><small>Efeito: <?= escapar($ataque['status_causado']) ?> (<?= (int) $ataque['chance_status'] ?>%)</small><?php endif; ?></div>
+  <?php endforeach; ?>
+ </article>
+<?php endforeach; ?>
+</div>
+<div class="mb-paper mb-ui-card mb-ui-empty" id="vazio" hidden>Nenhum Pokémon encontrado com esses filtros.</div>
 <script>
-const busca = document.getElementById('busca');
-const filtroTipo = document.getElementById('filtroTipo');
-const cards = document.querySelectorAll('.card-pokemon');
-const contador = document.getElementById('contador');
-const vazio = document.getElementById('vazio');
-
-function atualizarPokedex() {
+(function () {
+  'use strict';
+  const busca = document.getElementById('busca');
+  const filtro = document.getElementById('filtroTipo');
+  const cards = Array.from(document.querySelectorAll('.mb-ui-poke-search-result'));
+  const contador = document.getElementById('contador');
+  const vazio = document.getElementById('vazio');
+  function atualizar() {
     const nome = busca.value.trim().toLocaleLowerCase('pt-BR');
-    const tipo = filtroTipo.value;
-    let quantidade = 0;
-
-    cards.forEach(function(card) {
-        const correspondeNome = card.dataset.nome.includes(nome);
-        const correspondeTipo = tipo === 'todos' || card.dataset.tipo === tipo;
-        const mostrar = correspondeNome && correspondeTipo;
-
-        card.hidden = !mostrar;
-        // garante que o CSS do cartao respeite a filtragem
-        card.style.display = mostrar ? '' : 'none';
-
-        if (mostrar) quantidade++;
+    const tipo = filtro.value;
+    let total = 0;
+    cards.forEach(card => {
+      const visivel = card.dataset.nome.includes(nome) && (tipo === 'todos' || card.dataset.tipo === tipo);
+      card.hidden = !visivel;
+      if (visivel) total++;
     });
-
-    contador.textContent = quantidade + ' Pokemon encontrados';
-    vazio.style.display = quantidade === 0 ? 'block' : 'none';
-}
-
-busca.addEventListener('input', atualizarPokedex);
-filtroTipo.addEventListener('change', atualizarPokedex);
+    contador.textContent = total + ' Pokémon encontrados';
+    vazio.hidden = total !== 0;
+  }
+  busca.addEventListener('input', atualizar);
+  filtro.addEventListener('change', atualizar);
+  atualizar();
+})();
 </script>
-</body>
-</html>
+<?php mbEncerrarPagina(); ?>

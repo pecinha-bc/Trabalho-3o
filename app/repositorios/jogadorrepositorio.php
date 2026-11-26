@@ -13,7 +13,7 @@ class JogadorRepositorio
         $this->pdo = Conexao::conectar();
     }
 
-    // cria o perfil com kit inicial em uma transacao unica
+    
     public function criarPerfil(int $usuarioId, string $nome): int
     {
         $nome = trim($nome);
@@ -49,7 +49,7 @@ class JogadorRepositorio
                 ]);
             }
 
-            // impede que a migracao opcional entregue o kit uma segunda vez
+            
             $consulta = $this->pdo->prepare(
                 'INSERT INTO kit_inicial_entregue (perfil_id) VALUES (:id)'
             );

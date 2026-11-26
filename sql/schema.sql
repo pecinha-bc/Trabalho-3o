@@ -78,7 +78,6 @@ CREATE TABLE pokemon_perfil (
     defesa INT NULL,
     velocidade INT NULL,
     nivel INT NOT NULL DEFAULT 1,
-    experiencia INT NOT NULL DEFAULT 0,
     evoluiu BOOLEAN NOT NULL DEFAULT FALSE,
     status ENUM(
         'nenhum',
@@ -91,7 +90,6 @@ CREATE TABLE pokemon_perfil (
     FOREIGN KEY (perfil_id) REFERENCES perfil(id),
     FOREIGN KEY (pokemon_id) REFERENCES pokemon(id),
     CHECK (nivel > 0),
-    CHECK (experiencia >= 0),
     CHECK (hp_atual IS NULL OR hp_atual >= 0),
     CHECK (hp_maximo IS NULL OR hp_maximo > 0),
     CHECK (ataque IS NULL OR ataque > 0),
@@ -476,7 +474,6 @@ FOR EACH ROW
 BEGIN
     IF OLD.resultado = 'em_andamento'
        AND NEW.resultado IN ('vitoria', 'derrota', 'empate') THEN
-        -- cada combate termina com a equipe totalmente recuperada
         UPDATE pokemon_perfil pp
         INNER JOIN batalha_pokemon bp ON bp.pokemon_perfil_id = pp.id
         SET pp.hp_atual = pp.hp_maximo,

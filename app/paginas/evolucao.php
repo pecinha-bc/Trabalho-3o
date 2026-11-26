@@ -27,7 +27,7 @@ function escaparEvolucao($valor): string
     return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 }
 
-// aplica o aumento de 30% com arredondamento para inteiro
+
 function aumentarEvolucao(int $valor): int
 {
     return (int) round($valor * 1.30, 0, PHP_ROUND_HALF_UP);
@@ -42,7 +42,7 @@ if (!isset($_SESSION['token_evolucao'])) {
     $_SESSION['token_evolucao'] = bin2hex(random_bytes(32));
 }
 
-// a evolucao e feita em uma unica transacao, incluindo o consumo do item
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $token = $_POST['token'] ?? '';
     $informado = $_POST['pokemon_perfil_id'] ?? null;
@@ -58,7 +58,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         try {
             $pdo->beginTransaction();
 
-            // trava o perfil e confirma que ele pertence ao usuario conectado
+            
             $consulta = $pdo->prepare(
                 'SELECT id FROM perfil WHERE id = :perfil AND usuario_id = :usuario FOR UPDATE'
             );
@@ -67,7 +67,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 throw new RuntimeException('Perfil nao encontrado.');
             }
 
-            // a evolucao e proibida durante uma batalha
+            
             $consulta = $pdo->prepare(
                 "SELECT id FROM batalha WHERE perfil_id = :perfil AND resultado = 'em_andamento' LIMIT 1"
             );
@@ -76,7 +76,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 throw new RuntimeException('Finalize sua batalha antes de evoluir um Pokemon.');
             }
 
-            // consulta e trava o Pokemon pertencente ao perfil
+            
             $consulta = $pdo->prepare(
                 'SELECT pp.id, pp.pokemon_id, pp.hp_atual, pp.hp_maximo,
                         pp.ataque, pp.defesa, pp.velocidade, pp.evoluiu,
@@ -106,7 +106,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 throw new RuntimeException('Especie evoluida nao encontrada.');
             }
 
-            // confirma e trava a unidade do item de evolucao
+            
             $consulta = $pdo->prepare(
                 "SELECT inv.id, inv.quantidade
                  FROM inventario inv
@@ -128,7 +128,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $novaDefesa = aumentarEvolucao((int) $pokemon['defesa']);
             $novaVelocidade = aumentarEvolucao((int) $pokemon['velocidade']);
 
-            // o gatilho trg_valida_hp_pokemon_perfil valida e marca evoluiu = 1
+            
             $consulta = $pdo->prepare(
                 'UPDATE pokemon_perfil
                  SET pokemon_id = :evolucao,
@@ -182,7 +182,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
-// consulta a quantidade do item disponivel para este perfil
+
 $consulta = $pdo->prepare(
     "SELECT COALESCE(inv.quantidade, 0)
      FROM item i
@@ -193,14 +193,14 @@ $consulta = $pdo->prepare(
 $consulta->execute([':perfil' => $perfilId]);
 $quantidadeItem = (int) ($consulta->fetchColumn() ?: 0);
 
-// nao permitir evoluir enquanto existir uma batalha em andamento
+
 $consulta = $pdo->prepare(
     "SELECT COUNT(*) FROM batalha WHERE perfil_id = :perfil AND resultado = 'em_andamento'"
 );
 $consulta->execute([':perfil' => $perfilId]);
 $emBatalha = (int) $consulta->fetchColumn() > 0;
 
-// lista os Pokemon do perfil com a proxima evolucao disponivel
+
 $consulta = $pdo->prepare(
     'SELECT pp.id, pp.hp_atual, pp.hp_maximo, pp.ataque,
             pp.defesa, pp.velocidade, pp.nivel, pp.evoluiu,
@@ -215,109 +215,35 @@ $consulta = $pdo->prepare(
 $consulta->execute([':perfil' => $perfilId]);
 $pokemons = $consulta->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evolucao - MonstroBolso</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 24px; font-family: Arial, sans-serif; color: #243044; background: #f2f4f8; }
-        main { max-width: 1060px; margin: 0 auto; }
-        h1 { margin-bottom: 8px; }
-        .descricao { color: #5a687a; line-height: 1.5; }
-        .resumo { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 18px 0; }
-        .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
-        .pokemon { background: white; border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
-        .pokemon h2 { font-size: 21px; margin: 0 0 8px; }
-        .dados { line-height: 1.8; }
-        .futuro { background: #f0f5ff; padding: 12px; border-radius: 8px; margin: 14px 0; }
-        .aviso { padding: 12px 15px; border-radius: 8px; margin: 15px 0; background: #fff0cd; }
-        .erro { background: #f9dadd; }
-        .sucesso { background: #d8f3e3; }
-        button { padding: 12px 16px; width: 100%; background: #246bd6; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
-        button:disabled { background: #a5b0be; cursor: not-allowed; }
-        a { color: #246bd6; }
-        .links { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 30px; }
-    </style>
-</head>
-<body>
-<main>
-    <h1>Evolucao de Pokemon</h1>
-    <p class="descricao">Cada Pokemon pode evoluir uma unica vez, usando um Item de Evolucao comprado na loja. A evolucao aumenta o HP, ataque, defesa e velocidade em 30%.</p>
+<?php require_once __DIR__ . '/../includes/layout.php'; mbAbrirPagina('Evolução', 'Uma transformação por Pokémon. Use o Item de Evolução fora das batalhas e fortaleça sua equipe em 30%.', $perfil, 'evolucao.php'); ?>
 
-    <div class="resumo">
-        <strong>Treinador:</strong> <?= escaparEvolucao($perfil->getNome()) ?>
-        &nbsp; | &nbsp;
-        <strong>Itens de Evolucao:</strong> <?= $quantidadeItem ?>
-    </div>
-
-    <?php if ($erro !== ''): ?>
-        <div class="aviso erro"><?= escaparEvolucao($erro) ?></div>
-    <?php endif; ?>
-    <?php if ($sucesso !== ''): ?>
-        <div class="aviso sucesso"><?= escaparEvolucao($sucesso) ?></div>
-    <?php endif; ?>
-    <?php if ($emBatalha): ?>
-        <div class="aviso">Voce possui uma batalha em andamento. Finalize-a antes de evoluir um Pokemon.</div>
-    <?php elseif ($quantidadeItem < 1): ?>
-        <div class="aviso">Voce nao possui um Item de Evolucao. Compre um na loja para evoluir seus Pokemon.</div>
-    <?php endif; ?>
-
-    <div class="grade">
-        <?php foreach ($pokemons as $pokemon): ?>
-            <?php
-                $jaEvoluiu = (int) $pokemon['evoluiu'] === 1;
-                $podeEvoluir = !$jaEvoluiu && $pokemon['evolui_para_id'] !== null;
-                $podeConfirmar = $podeEvoluir && !$emBatalha && $quantidadeItem > 0;
-            ?>
-            <section class="pokemon">
-                <h2><?= escaparEvolucao($pokemon['nome']) ?></h2>
-                <p><strong>Tipo:</strong> <?= escaparEvolucao($pokemon['tipo']) ?></p>
-                <p><strong>Nivel:</strong> <?= (int) $pokemon['nivel'] ?></p>
-                <div class="dados">
-                    HP: <?= (int) $pokemon['hp_atual'] ?> / <?= (int) $pokemon['hp_maximo'] ?><br>
-                    Ataque: <?= (int) $pokemon['ataque'] ?><br>
-                    Defesa: <?= (int) $pokemon['defesa'] ?><br>
-                    Velocidade: <?= (int) $pokemon['velocidade'] ?>
-                </div>
-
-                <?php if ($podeEvoluir): ?>
-                    <div class="futuro">
-                        <strong>Evolucao: <?= escaparEvolucao($pokemon['nome_evolucao']) ?></strong>
-                        <div class="dados">
-                            HP maximo: <?= (int) $pokemon['hp_maximo'] ?> → <?= aumentarEvolucao((int) $pokemon['hp_maximo']) ?><br>
-                            Ataque: <?= (int) $pokemon['ataque'] ?> → <?= aumentarEvolucao((int) $pokemon['ataque']) ?><br>
-                            Defesa: <?= (int) $pokemon['defesa'] ?> → <?= aumentarEvolucao((int) $pokemon['defesa']) ?><br>
-                            Velocidade: <?= (int) $pokemon['velocidade'] ?> → <?= aumentarEvolucao((int) $pokemon['velocidade']) ?>
-                        </div>
-                    </div>
-                    <form method="POST">
-                        <input type="hidden" name="token" value="<?= escaparEvolucao($_SESSION['token_evolucao']) ?>">
-                        <input type="hidden" name="pokemon_perfil_id" value="<?= (int) $pokemon['id'] ?>">
-                        <button type="submit" <?= !$podeConfirmar ? 'disabled' : '' ?>
-                                onclick="return confirm('Evoluir este Pokemon e consumir um Item de Evolucao?');">
-                            Evoluir Pokemon
-                        </button>
-                    </form>
-                <?php else: ?>
-                    <div class="aviso"><?= $jaEvoluiu ? 'Este Pokemon ja evoluiu e nao pode evoluir novamente.' : 'Este Pokemon nao possui evolucao disponivel.' ?></div>
-                <?php endif; ?>
-            </section>
-        <?php endforeach; ?>
-    </div>
-
-    <?php if (count($pokemons) === 0): ?>
-        <div class="aviso">Sua equipe ainda esta vazia. Escolha seus Pokemon primeiro.</div>
-    <?php endif; ?>
-
-    <nav class="links">
-        <a href="loja.php">Comprar Item de Evolucao</a>
-        <a href="inventario.php">Ver inventario</a>
-        <a href="equipe.php">Minha equipe</a>
-        <a href="inicio.php">Voltar ao menu</a>
-    </nav>
-</main>
-</body>
-</html>
+<div class="mb-ui-stats" style="justify-content:center;margin-bottom:22px"><span class="mb-counter">✦ Itens de Evolução: <?= (int) $quantidadeItem ?></span><a class="mb-button mb-button-light" href="loja.php">Comprar item</a></div>
+<?php if ($erro !== ''): ?><div class="mb-ui-alert is-error" role="alert"><?= escaparEvolucao($erro) ?></div><?php endif; ?>
+<?php if ($sucesso !== ''): ?><div class="mb-ui-alert is-success" role="status"><?= escaparEvolucao($sucesso) ?></div><?php endif; ?>
+<?php if ($emBatalha): ?><div class="mb-ui-alert">Você possui uma batalha em andamento. Termine o combate antes de evoluir.</div>
+<?php elseif ($quantidadeItem < 1): ?><div class="mb-ui-alert">Você precisa de um Item de Evolução. Ele está disponível na loja.</div><?php endif; ?>
+<div class="mb-ui-grid">
+<?php foreach ($pokemons as $pokemon): ?>
+ <?php $jaEvoluiu = (int) $pokemon['evoluiu'] === 1; $podeEvoluir = !$jaEvoluiu && $pokemon['evolui_para_id'] !== null; $podeConfirmar = $podeEvoluir && !$emBatalha && $quantidadeItem > 0; ?>
+ <article class="mb-paper mb-ui-card">
+  <div class="mb-ui-art"><img src="<?= mbSeguro(mbImagemPokemon((string) $pokemon['nome'])) ?>" alt="Ilustração de <?= escaparEvolucao($pokemon['nome']) ?>" onerror="this.src='../assets/imagens/pokemon-indisponivel.svg';this.onerror=null"></div>
+  <div class="mb-ui-pokemon-name"><h2><?= escaparEvolucao($pokemon['nome']) ?></h2><span class="mb-ui-type mb-ui-type-<?= escaparEvolucao($pokemon['tipo']) ?>"><?= escaparEvolucao($pokemon['tipo']) ?></span></div>
+  <p class="mb-ui-muted">Nível <?= (int) $pokemon['nivel'] ?> · <?= $jaEvoluiu ? 'Já evoluiu' : 'Forma inicial' ?></p>
+  <div class="mb-ui-stat-grid"><div class="mb-ui-stat-box"><span>HP</span><strong><?= (int) $pokemon['hp_atual'] ?> / <?= (int) $pokemon['hp_maximo'] ?></strong></div><div class="mb-ui-stat-box"><span>Ataque</span><strong><?= (int) $pokemon['ataque'] ?></strong></div><div class="mb-ui-stat-box"><span>Defesa</span><strong><?= (int) $pokemon['defesa'] ?></strong></div><div class="mb-ui-stat-box"><span>Velocidade</span><strong><?= (int) $pokemon['velocidade'] ?></strong></div></div>
+  <?php if ($podeEvoluir): ?>
+   <div class="mb-ui-evolve-future">
+    <strong>✦ Próxima forma: <?= escaparEvolucao($pokemon['nome_evolucao']) ?></strong>
+    <p class="mb-ui-muted">HP <?= (int) $pokemon['hp_maximo'] ?> → <?= aumentarEvolucao((int) $pokemon['hp_maximo']) ?> · Ataque <?= (int) $pokemon['ataque'] ?> → <?= aumentarEvolucao((int) $pokemon['ataque']) ?></p>
+    <p class="mb-ui-muted">Defesa <?= (int) $pokemon['defesa'] ?> → <?= aumentarEvolucao((int) $pokemon['defesa']) ?> · Velocidade <?= (int) $pokemon['velocidade'] ?> → <?= aumentarEvolucao((int) $pokemon['velocidade']) ?></p>
+   </div>
+   <form method="post" class="mb-ui-form">
+    <input type="hidden" name="token" value="<?= escaparEvolucao($_SESSION['token_evolucao']) ?>">
+    <input type="hidden" name="pokemon_perfil_id" value="<?= (int) $pokemon['id'] ?>">
+    <button class="mb-button mb-button-green" type="submit" <?= !$podeConfirmar ? 'disabled' : '' ?> onclick="return confirm('Evoluir este Pokémon consumindo um Item de Evolução?');">Evoluir Pokémon ✦</button>
+   </form>
+  <?php else: ?><p class="mb-ui-note"><?= $jaEvoluiu ? 'Este Pokémon já evoluiu e não pode evoluir novamente.' : 'Não há uma evolução disponível para esta espécie.' ?></p><?php endif; ?>
+ </article>
+<?php endforeach; ?>
+</div>
+<?php if (!$pokemons): ?><div class="mb-ui-alert">Sua equipe ainda está vazia. <a href="equipe.php">Selecione três Pokémon</a> primeiro.</div><?php endif; ?>
+<?php mbEncerrarPagina(); ?>

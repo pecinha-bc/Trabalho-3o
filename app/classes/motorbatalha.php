@@ -1,8 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../includes/itens.php';
 
-// controla as regras e persiste o estado de cada batalha no banco
+
 class MotorBatalha
 {
     private PDO $pdo;
@@ -54,7 +55,7 @@ class MotorBatalha
     ): array {
         $this->pdo->beginTransaction();
         try {
-            // bloqueio evita turnos duplicados em requisicoes simultaneas
+            
             $batalha = $this->buscarBatalha($batalhaId, $perfilId);
             if ($batalha['resultado'] !== 'em_andamento') {
                 throw new RuntimeException('Esta batalha ja terminou.');
@@ -72,7 +73,7 @@ class MotorBatalha
             }
 
             if ($acao === 'item') {
-                // o item nao consome ataque, mas e limitado a um por rodada
+                
                 if ($estado['usos_jogador'] >= $limite) {
                     throw new RuntimeException('Seu limite total de itens foi atingido.');
                 }
@@ -103,10 +104,10 @@ class MotorBatalha
                 $estado['item_turno_jogador'] = (int) $estado['turno'];
                 $this->evento(
                     $batalhaId, 'item',
-                    'Jogador usou ' . $item['nome'] . ' em ' . $pokemons[$alvoId]['nome'] . '.',
+                    'Jogador usou ' . mbNomeItem($item) . ' em ' . $pokemons[$alvoId]['nome'] . '.',
                     $alvoId, null, $referencia
                 );
-                // nenhum ataque ocorre ate o jogador escolher atacar ou trocar
+                
             } elseif ($acao === 'atacar' || $acao === 'trocar') {
                 if ($acao === 'atacar') {
                     $ataqueJogador = $this->buscarAtaque(
@@ -124,8 +125,8 @@ class MotorBatalha
                     }
                 }
 
-                // o NPC tem a mesma inteligencia em todas as dificuldades
-                // e sempre realiza a acao principal antes do jogador
+                
+                
                 $itemNpc = $this->escolherItemNpc($pokemons, $estado, $limite);
                 if ($itemNpc !== null) {
                     $this->usarItemNpc(
@@ -137,7 +138,7 @@ class MotorBatalha
 
                 if ($pokemons[$jogadorId]['hp_atual'] > 0) {
                     if ($acao === 'trocar') {
-                        // a troca gasta a acao principal e nao provoca outro ataque
+                        
                         $estado['jogador_ativo'] = $referencia;
                         $this->evento(
                             $batalhaId, 'informacao',
@@ -156,7 +157,7 @@ class MotorBatalha
                     );
                 }
 
-                // o status novo so se aplica a partir da proxima rodada
+                
                 foreach ($this->efeitosPendentes as $efeito) {
                     $id = $efeito['pokemon_id'];
                     if ($pokemons[$id]['hp_atual'] > 0 &&
@@ -179,7 +180,7 @@ class MotorBatalha
                 throw new InvalidArgumentException('Acao invalida.');
             }
 
-            // salva os seis participantes antes do gatilho de finalizacao
+            
             $this->salvarPokemons($batalhaId, $pokemons);
             $resultado = $this->verificarResultado($pokemons);
             if ($resultado === null) {
@@ -188,7 +189,7 @@ class MotorBatalha
             $this->salvarEstado($batalhaId, $estado);
 
             if ($resultado !== null) {
-                // o trigger do banco cura equipes e credita o premio uma so vez
+                
                 $consulta = $this->pdo->prepare(
                     "UPDATE batalha SET resultado = :resultado
                      WHERE id = :id AND resultado = 'em_andamento'"
@@ -265,7 +266,7 @@ class MotorBatalha
                 throw new RuntimeException('Estado da batalha invalido.');
             }
             if (($estado['versao'] ?? null) === 1) {
-                // migra o estado antigo sem perder estoque e contadores
+                
                 $estado['versao'] = 2;
                 $estado['efeitos'] = [];
                 $estado['item_turno_jogador'] = 0;
@@ -375,7 +376,7 @@ class MotorBatalha
             throw new RuntimeException('NPC sem ataques cadastrados.');
         }
 
-        // todos os NPCs escolhem o melhor ataque estimado
+        
         $escolhido = null;
         $melhor = -1;
         foreach ($ataques as $ataque) {
@@ -419,7 +420,7 @@ class MotorBatalha
         }
     }
 
-    // efeitos de status sao aplicados somente na proxima acao do afetado
+    
     private function resolverStatus(
         int $batalhaId, array &$pokemons, array &$estado, int $pokemonId
     ): bool {
@@ -435,9 +436,9 @@ class MotorBatalha
         }
 
         if (in_array($status, ['queimadura', 'veneno', 'paralisia'], true)) {
-            // queimadura e veneno: 50% do dano inicial
-            // paralisia: 25% de dano adicional e nao bloqueia a acao
-            $multiplicador = $status === 'paralisia' ? 0.25 : 0.50;
+            
+            
+            $multiplicador = 0.50;
             $dano = max(1, (int) floor((int) $efeito['dano_base'] * $multiplicador));
             $pokemons[$pokemonId]['hp_atual'] = max(
                 0, $pokemons[$pokemonId]['hp_atual'] - $dano
@@ -470,11 +471,11 @@ class MotorBatalha
 
     private function calcularDano(array $origem, array $destino, array $ataque): int
     {
-        $dano = max(1, (int) floor(
+        $dano = max(0, (int) floor(
             (int) $ataque['poder_base'] +
             ($origem['ataque'] - $destino['defesa']) / 10
         ));
-        // vantagem simples entre elementos, sem golpe critico
+        
         $vantagem = [
             'fogo' => 'planta',
             'agua' => 'fogo',
@@ -482,7 +483,7 @@ class MotorBatalha
             'eletrico' => 'agua'
         ];
         if (($vantagem[$ataque['tipo']] ?? null) === $destino['tipo']) {
-            $dano = max(1, (int) floor($dano * 1.25));
+            $dano = max(0, (int) floor($dano * 1.25));
         }
         return $dano;
     }
@@ -503,7 +504,7 @@ class MotorBatalha
             $origemId, (int) $ataque['id']
         );
 
-        // velocidade influencia esquiva, nao a ordem dos turnos
+        
         $esquiva = min(15, max(0, (int) floor(
             ($destino['velocidade'] - $origem['velocidade']) / 4
         )));
@@ -633,7 +634,7 @@ class MotorBatalha
         if (!$ativo || $ativo['hp_atual'] <= 0) {
             return null;
         }
-        // primeiro remove status que impede a acao
+        
         if (in_array($ativo['status'], ['sono', 'congelamento', 'paralisia'], true)) {
             foreach ($disponiveis as $item) {
                 if ($item['tipo_efeito'] === 'cura_status' &&
@@ -642,7 +643,7 @@ class MotorBatalha
                 }
             }
         }
-        // quando o HP esta baixo, seleciona a cura mais proxima do HP faltante
+        
         if ($ativo['hp_atual'] * 100 <= $ativo['hp_maximo'] * 55) {
             $faltante = $ativo['hp_maximo'] - $ativo['hp_atual'];
             $melhor = null;
@@ -664,7 +665,7 @@ class MotorBatalha
                 return ['item' => $melhor, 'alvo' => $ativoId];
             }
         }
-        // revive aliados para nao ficar com apenas um Pokemon
+        
         foreach ($pokemons as $pokemon) {
             if ($pokemon['lado'] === 'npc' && $pokemon['hp_atual'] === 0) {
                 foreach ($disponiveis as $item) {
@@ -674,7 +675,7 @@ class MotorBatalha
                 }
             }
         }
-        // remove outros status quando houver um item valido
+        
         if ($ativo['status'] !== 'nenhum') {
             foreach ($disponiveis as $item) {
                 if ($item['tipo_efeito'] === 'cura_status' &&
@@ -699,7 +700,7 @@ class MotorBatalha
         $this->removerEfeitoSeCurado($estado, $pokemons, $alvoId);
         $this->evento(
             $batalhaId, 'item',
-            'NPC usou ' . $item['nome'] . ' em ' . $pokemons[$alvoId]['nome'] . '.',
+            'NPC usou ' . mbNomeItem($item) . ' em ' . $pokemons[$alvoId]['nome'] . '.',
             $alvoId, null, $id
         );
     }

@@ -72,7 +72,7 @@ $mensagemErro = '';
 try {
     $pdo = Conexao::conectar();
 
-    // consulta somente os itens deste perfil, sempre com quantidade positiva
+    
     $consulta = $pdo->prepare(
         'SELECT i.id, i.nome, i.tipo_efeito, i.valor_efeito,
                 i.status_removido, i.aparece_inventario,
@@ -89,7 +89,7 @@ try {
         $item['quantidade'] = (int) $item['quantidade'];
         $quantidadeTotal += $item['quantidade'];
 
-        // itens de evolucao nao podem ser usados durante uma batalha
+        
         if ($item['tipo_efeito'] === 'evolucao' || !(bool) $item['aparece_inventario']) {
             $itensEspeciais[] = $item;
         } else {
@@ -102,89 +102,40 @@ try {
 
 $tiposDiferentes = count($itensBatalha) + count($itensEspeciais);
 ?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario - MonstroBolso</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 24px; font-family: Arial, sans-serif; color: #1d2736; background: #f2f4f8; }
-        main { max-width: 1050px; margin: 0 auto; }
-        h1 { margin: 0 0 8px; }
-        h2 { margin: 30px 0 12px; }
-        .descricao { color: #536274; line-height: 1.5; }
-        .resumo { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0; }
-        .resumo div { background: #fff; padding: 14px 18px; border: 1px solid #ddd; border-radius: 10px; }
-        .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-        .item { padding: 20px; background: #fff; border: 1px solid #ddd; border-radius: 12px; }
-        .item h3 { margin: 0 0 12px; font-size: 19px; }
-        .efeito { color: #536274; line-height: 1.5; min-height: 44px; }
-        .quantidade { display: inline-block; padding: 7px 12px; border-radius: 20px; background: #e9f1ff; color: #174f9b; font-weight: bold; }
-        .especial { border-color: #bd94dc; }
-        .aviso { background: #fff4d6; padding: 14px; border-radius: 9px; margin: 16px 0; }
-        .erro { background: #f9dadd; }
-        .acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-        .botao { display: inline-block; padding: 12px 18px; background: #246bd6; color: #fff; border-radius: 7px; text-decoration: none; }
-        .botao.secundario { background: #fff; color: #246bd6; border: 1px solid #246bd6; }
-    </style>
-</head>
-<body>
-<main>
-    <h1>Inventario - MonstroBolso</h1>
-    <p class="descricao">Consulte os itens comprados na loja e suas quantidades.</p>
+<?php require_once __DIR__ . '/../includes/layout.php'; mbAbrirPagina('Inventário', 'Os itens que você conquistou ou comprou, sempre à mão.', $perfil, 'inventario.php'); ?>
 
-    <div class="resumo">
-        <div><strong>Treinador:</strong> <?= escaparInventario($perfil->getNome()) ?></div>
-        <div><strong>Saldo:</strong> <?= (int) $perfil->getSaldo() ?> Pokedolares</div>
-        <div><strong>Tipos de itens:</strong> <?= $tiposDiferentes ?></div>
-        <div><strong>Total de unidades:</strong> <?= $quantidadeTotal ?></div>
-    </div>
-
-    <?php if ($mensagemErro !== ''): ?>
-        <div class="aviso erro"><?= escaparInventario($mensagemErro) ?></div>
-    <?php elseif ($quantidadeTotal === 0): ?>
-        <div class="aviso">
-            Seu inventario esta vazio. Visite a loja para comprar itens.
-        </div>
-    <?php else: ?>
-        <h2>Itens para batalha</h2>
-        <p class="descricao">Estes itens podem ser usados durante o combate, respeitando o limite da dificuldade escolhida.</p>
-
-        <?php if (count($itensBatalha) === 0): ?>
-            <p class="descricao">Voce ainda nao possui itens de batalha.</p>
-        <?php else: ?>
-            <div class="grade">
-                <?php foreach ($itensBatalha as $item): ?>
-                    <section class="item">
-                        <h3><?= escaparInventario($item['nome']) ?></h3>
-                        <p class="efeito"><?= escaparInventario(descreverEfeitoInventario($item)) ?></p>
-                        <span class="quantidade">Quantidade: <?= $item['quantidade'] ?></span>
-                    </section>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if (count($itensEspeciais) > 0): ?>
-            <h2>Itens especiais</h2>
-            <p class="descricao">Esses itens ficam guardados no perfil, mas nao podem ser usados durante a batalha.</p>
-            <div class="grade">
-                <?php foreach ($itensEspeciais as $item): ?>
-                    <section class="item especial">
-                        <h3><?= escaparInventario($item['nome']) ?></h3>
-                        <p class="efeito"><?= escaparInventario(descreverEfeitoInventario($item)) ?></p>
-                        <span class="quantidade">Quantidade: <?= $item['quantidade'] ?></span>
-                    </section>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    <?php endif; ?>
-
-    <div class="acoes">
-        <a class="botao" href="loja.php">Ir para a loja</a>
-        <a class="botao secundario" href="inicio.php">Voltar ao menu principal</a>
-    </div>
-</main>
-</body>
-</html>
+<div class="mb-ui-stats" style="justify-content:center;margin-bottom:23px">
+ <span class="mb-counter">✦ <?= (int) $perfil->getSaldo() ?> Pokédólares</span><span class="mb-counter">▣ <?= $tiposDiferentes ?> tipos de itens</span><span class="mb-counter">🎒 <?= $quantidadeTotal ?> unidades</span>
+</div>
+<?php if ($mensagemErro !== ''): ?><div class="mb-ui-alert is-error"><?= escaparInventario($mensagemErro) ?></div>
+<?php elseif ($quantidadeTotal === 0): ?><div class="mb-ui-alert">Sua bolsa está vazia. Visite a loja para comprar itens.</div>
+<?php else: ?>
+ <h2 class="mb-ui-section-title">Itens de batalha</h2>
+ <?php if (!$itensBatalha): ?><div class="mb-paper mb-ui-card">Nenhum item de batalha por enquanto.</div><?php else: ?>
+  <div class="mb-ui-grid mb-ui-grid-4">
+  <?php foreach ($itensBatalha as $item): ?>
+   <article class="mb-paper mb-ui-card">
+    <div class="mb-ui-item-hero"><span class="mb-ui-kicker">CONSUMÍVEL</span><span class="mb-ui-item-symbol" aria-hidden="true"><img class="mb-ui-item-icon" src="<?= mbSeguro(mbIconeItem($item)) ?>" alt=""></span></div>
+    <h2><?= escaparInventario(mbNomeItem($item)) ?></h2>
+    <p class="mb-ui-muted mb-ui-item-desc"><?= escaparInventario(descreverEfeitoInventario($item)) ?></p>
+    <span class="mb-ui-badge">Quantidade: <?= (int) $item['quantidade'] ?></span>
+   </article>
+  <?php endforeach; ?>
+  </div>
+ <?php endif; ?>
+ <?php if ($itensEspeciais): ?>
+   <h2 class="mb-ui-section-title">Itens especiais</h2>
+   <div class="mb-ui-grid mb-ui-grid-4">
+   <?php foreach ($itensEspeciais as $item): ?>
+    <article class="mb-paper mb-ui-card">
+     <div class="mb-ui-item-hero"><span class="mb-ui-kicker">RARIDADE ESPECIAL</span><span class="mb-ui-item-symbol" aria-hidden="true"><img class="mb-ui-item-icon" src="<?= mbSeguro(mbIconeItem($item)) ?>" alt=""></span></div>
+     <h2><?= escaparInventario(mbNomeItem($item)) ?></h2>
+     <p class="mb-ui-muted mb-ui-item-desc"><?= escaparInventario(descreverEfeitoInventario($item)) ?></p>
+     <span class="mb-ui-badge mb-ui-badge-gold">Quantidade: <?= (int) $item['quantidade'] ?></span>
+    </article>
+   <?php endforeach; ?>
+   </div>
+ <?php endif; ?>
+<?php endif; ?>
+<div class="mb-ui-actions"><a class="mb-button mb-button-green" href="loja.php">Visitar a loja</a><a class="mb-button mb-button-light" href="evolucao.php">Evoluir Pokémon</a></div>
+<?php mbEncerrarPagina(); ?>

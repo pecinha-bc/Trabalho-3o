@@ -1,4 +1,3 @@
-// carrossel da equipe: a escolha so e salva depois da validacao PHP
 (() => {
     'use strict';
 
@@ -77,7 +76,6 @@
         const tipo = String(pokemon.tipo || '').toLowerCase();
         detalhes.appendChild(elemento('span', `mb-type-badge mb-type-${tipo}`, `${iconeTipo[tipo] || '◉'} ${rotuloTipo[tipo] || tipo}`));
         detalhes.appendChild(elemento('p', 'mb-detail-meta', `Nível ${pokemon.nivel} · ${visualizacao ? `Status: ${pokemon.status}` : 'Disponível para sua equipe'}`));
-        // hp usa a proporcao real; os demais atributos usam a escala ate 150 pontos
         detalhes.appendChild(criarEstatistica('HP', `${pokemon.hpAtual}/${pokemon.hp}`, '', 1, pokemon.hp > 0 ? pokemon.hpAtual / pokemon.hp : 0));
         detalhes.appendChild(criarEstatistica('Ataque', pokemon.ataque, 'mb-stat-attack', 150));
         detalhes.appendChild(criarEstatistica('Defesa', pokemon.defesa, 'mb-stat-defense', 150));

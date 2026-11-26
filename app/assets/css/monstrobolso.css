@@ -1,4 +1,4 @@
-/* interface do monstrobolso: paisagem pintada e cartoes de pergaminho */
+
 :root {
     --mb-ink: #273a47;
     --mb-ink-strong: #192c39;
@@ -110,7 +110,7 @@ a { color: inherit; }
 .mb-message-error { background: #f5d8d5ed; color: #8d322f; border-color: #b87065; }
 .mb-message-success { background: #ddeddced; color: #316944; }
 .mb-hint { margin: 0; font-size: 13px; color: #34494a; padding: 6px 12px; background: #f8edcfcc; border-radius: 8px; text-align: center; }
-/* menu principal */
+
 .mb-menu-hero { text-align: center; margin: 50px auto 35px; max-width: 750px; }
 .mb-menu-hero .mb-heading { font-size: clamp(35px, 5vw, 58px); }
 .mb-menu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1170px; margin: 0 auto; }

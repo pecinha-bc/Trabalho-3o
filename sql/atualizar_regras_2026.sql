@@ -1,11 +1,5 @@
 USE trabalho3oano;
-
--- execute somente com backup e sem batalhas em andamento
-
--- novo valor das recompensas
 UPDATE npc SET recompensa = CASE dificuldade WHEN 'facil' THEN 125 WHEN 'medio' THEN 250 WHEN 'dificil' THEN 500 END;
-
--- atualizar equipes de npc respeitando as posicoes existentes
 UPDATE npc_pokemon np
 JOIN npc n ON n.id = np.npc_id
 JOIN (
@@ -22,8 +16,6 @@ JOIN (
 JOIN pokemon p ON p.nome = x.pokemon
 SET np.pokemon_id = p.id, np.hp_maximo = p.hp_base,
     np.hp_atual = p.hp_base, np.status = 'nenhum';
-
--- inserir ou atualizar os ataques por nome
 INSERT INTO ataque (nome, tipo, poder_base, status_causado, chance_status) VALUES
 ('Investida', 'normal', 8, 'nenhum', 0),
 ('Brasa', 'fogo', 13, 'queimadura', 30),
@@ -45,15 +37,11 @@ INSERT INTO ataque (nome, tipo, poder_base, status_causado, chance_status) VALUE
 ('Soco Trovao', 'eletrico', 19, 'paralisia', 20)
 ON DUPLICATE KEY UPDATE tipo = VALUES(tipo), poder_base = VALUES(poder_base),
     status_causado = VALUES(status_causado), chance_status = VALUES(chance_status);
-
--- substituir somente as associacoes das 24 especies do jogo
 DELETE FROM pokemon_ataque WHERE pokemon_id IN (
     SELECT id FROM pokemon WHERE nome IN (
         'Charmander', 'Growlithe', 'Vulpix', 'Squirtle', 'Psyduck', 'Poliwag', 'Bulbasaur', 'Oddish', 'Bellsprout', 'Pikachu', 'Magnemite', 'Electabuzz', 'Charmeleon', 'Arcanine', 'Ninetales', 'Wartortle', 'Golduck', 'Poliwhirl', 'Ivysaur', 'Gloom', 'Weepinbell', 'Raichu', 'Magneton', 'Electivire'
     )
 );
-
--- cada especie inicial conhece tres ataques
 INSERT INTO pokemon_ataque (pokemon_id, ataque_id, posicao)
 SELECT p.id, a.id, x.posicao
 FROM (
@@ -131,8 +119,6 @@ UNION ALL
 ) x
 JOIN pokemon p ON p.nome = x.pokemon
 JOIN ataque a ON a.nome = x.ataque;
-
--- os evoluidos herdam os ataques da especie inicial
 INSERT INTO pokemon_ataque (pokemon_id, ataque_id, posicao)
 SELECT evolucao.id, pa.ataque_id, pa.posicao
 FROM (
@@ -163,10 +149,7 @@ UNION ALL
 JOIN pokemon base ON base.nome = mapa.base
 JOIN pokemon evolucao ON evolucao.nome = mapa.evolucao
 JOIN pokemon_ataque pa ON pa.pokemon_id = base.id;
-
--- renovar o estoque padrao dos npc, que o motor copia por batalha
 DELETE FROM inventario_npc WHERE npc_id IN (SELECT id FROM npc WHERE dificuldade IN ('facil','medio','dificil'));
--- os tres npc possuem acesso aos 12 itens de batalha, por combate
 INSERT INTO inventario_npc (npc_id, item_id, quantidade)
 SELECT n.id, i.id, CASE
     WHEN i.nome = 'Pocao' THEN 2
@@ -176,15 +159,11 @@ END AS quantidade
 FROM npc n
 CROSS JOIN item i
 WHERE i.tipo_efeito <> 'evolucao' AND i.aparece_inventario = TRUE;
-
--- tabela para controlar o kit inicial e impedir entregas duplicadas
 CREATE TABLE IF NOT EXISTS kit_inicial_entregue (
     perfil_id INT PRIMARY KEY,
     data_entrega TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (perfil_id) REFERENCES perfil(id)
 );
-
--- atualizar o gatilho de finalizacao para curar os dois lados
 DROP TRIGGER IF EXISTS trg_recompensa_vitoria;
 DELIMITER //
 CREATE TRIGGER trg_recompensa_vitoria

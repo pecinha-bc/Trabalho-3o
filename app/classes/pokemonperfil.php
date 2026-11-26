@@ -11,7 +11,6 @@ class PokemonPerfil
     private int $defesa;
     private int $velocidade;
     private int $nivel;
-    private int $experiencia;
     private bool $evoluiu;
     private string $status;
 
@@ -25,7 +24,6 @@ class PokemonPerfil
         int $defesa,
         int $velocidade,
         int $nivel = 1,
-        int $experiencia = 0,
         bool $evoluiu = false,
         string $status = 'nenhum'
     ) {
@@ -38,7 +36,6 @@ class PokemonPerfil
         $this->defesa = $defesa;
         $this->velocidade = $velocidade;
         $this->nivel = max(1, $nivel);
-        $this->experiencia = max(0, $experiencia);
         $this->evoluiu = $evoluiu;
         $this->status = $status;
     }
@@ -61,13 +58,6 @@ class PokemonPerfil
         return $this->hpAtual > 0;
     }
 
-    public function adicionarExperiencia(int $quantidade): void
-    {
-        if ($quantidade > 0) {
-            $this->experiencia += $quantidade;
-        }
-    }
-
     public function alterarStatus(string $status): void
     {
         $this->status = $status;
@@ -82,7 +72,6 @@ class PokemonPerfil
     public function getDefesa(): int { return $this->defesa; }
     public function getVelocidade(): int { return $this->velocidade; }
     public function getNivel(): int { return $this->nivel; }
-    public function getExperiencia(): int { return $this->experiencia; }
     public function getStatus(): string { return $this->status; }
     public function jaEvoluiu(): bool { return $this->evoluiu; }
 }

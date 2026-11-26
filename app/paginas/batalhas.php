@@ -47,7 +47,7 @@ $limites = [
     'dificil' => 7
 ];
 
-// verifica a quantidade de pokemons do jogador
+
 $consulta = $pdo->prepare(
     "SELECT COUNT(*) FROM pokemon_perfil
      WHERE perfil_id = :perfil_id"
@@ -56,7 +56,7 @@ $consulta = $pdo->prepare(
 $consulta->execute([':perfil_id' => $perfilId]);
 $quantidadeEquipe = (int) $consulta->fetchColumn();
 
-// consulta os treinadores
+
 $consulta = $pdo->query(
     "SELECT id, nome, dificuldade, recompensa
      FROM npc
@@ -65,7 +65,7 @@ $consulta = $pdo->query(
 
 $treinadores = $consulta->fetchAll();
 
-// consulta as equipes dos treinadores
+
 $consulta = $pdo->query(
     "SELECT np.npc_id, p.nome, p.tipo
      FROM npc_pokemon np
@@ -79,7 +79,7 @@ foreach ($consulta->fetchAll() as $pokemon) {
     $equipesNpc[$pokemon['npc_id']][] = $pokemon;
 }
 
-// procura uma batalha que ainda nao terminou
+
 $consulta = $pdo->prepare(
     "SELECT b.id, b.npc_id, n.nome AS nome_npc
      FROM batalha b
@@ -93,7 +93,7 @@ $consulta = $pdo->prepare(
 $consulta->execute([':perfil_id' => $perfilId]);
 $batalhaAtiva = $consulta->fetch();
 
-// prepara a sessao para retomar o combate
+
 if ($batalhaAtiva) {
     $_SESSION['npc_selecionado_id'] =
         (int) $batalhaAtiva['npc_id'];
@@ -101,7 +101,7 @@ if ($batalhaAtiva) {
     $_SESSION['npc_selecionado_perfil_id'] = $perfilId;
 }
 
-// recebe a escolha do treinador
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $token = $_POST['token'] ?? '';
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 random_bytes(32)
             );
 
-            // abre automaticamente a preparacao do combate
+            
             header('Location: combate.php');
             exit;
         }
@@ -152,241 +152,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+<?php require_once __DIR__ . '/../includes/layout.php'; mbAbrirPagina('Batalhas', 'Escolha um treinador, enfrente seus três Pokémon e conquiste recompensas.', $perfil, 'batalhas.php'); ?>
 
-    <title>Batalhas - MonstroBolso</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f4f8;
-            margin: 0;
-            padding: 20px;
-        }
-
-        main {
-            max-width: 1050px;
-            margin: auto;
-        }
-
-        h1, h2 {
-            text-align: center;
-        }
-
-        .descricao {
-            text-align: center;
-            color: #555;
-        }
-
-        .grade {
-            display: grid;
-            grid-template-columns:
-                repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .treinador {
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            padding: 22px;
-        }
-
-        .treinador h3 {
-            margin-top: 0;
-        }
-
-        .facil {
-            border-color: #34a853;
-        }
-
-        .medio {
-            border-color: #f4b400;
-        }
-
-        .dificil {
-            border-color: #ea4335;
-        }
-
-        .atributo {
-            margin: 12px 0;
-        }
-
-        ul {
-            padding-left: 20px;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        button, .botao {
-            display: inline-block;
-            box-sizing: border-box;
-            width: 100%;
-            padding: 12px 18px;
-            margin-top: 14px;
-            background: #246bd6;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            font-size: 15px;
-        }
-
-        button:disabled {
-            background: #aaa;
-            cursor: not-allowed;
-        }
-
-        .mensagem {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .erro {
-            background: #f8d7da;
-        }
-
-        .voltar {
-            text-align: center;
-            margin-top: 30px;
-        }
-    </style>
-</head>
-
-<body>
-<main>
-
-    <h1>MonstroBolso</h1>
-    <h2>Escolha seu adversario</h2>
-
-    <p class="descricao">
-        Treinador:
-        <strong><?= escapar($perfil->getNome()) ?></strong>
-    </p>
-
-    <?php if ($erro !== ''): ?>
-        <div class="mensagem erro">
-            <?= escapar($erro) ?>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($batalhaAtiva): ?>
-
-        <div class="mensagem">
-            <strong>Voce possui uma batalha em andamento.</strong>
-
-            <p>
-                Adversario:
-                <?= escapar($batalhaAtiva['nome_npc']) ?>
-            </p>
-
-            <a class="botao" href="combate.php">
-                Retomar batalha
-            </a>
-        </div>
-
-    <?php elseif ($quantidadeEquipe !== 3): ?>
-
-        <div class="mensagem">
-            Voce precisa escolher tres Pokemon antes de batalhar.
-
-            <a class="botao" href="equipe.php">
-                Montar equipe
-            </a>
-        </div>
-
-    <?php else: ?>
-
-        <p class="descricao">
-            Escolha um treinador para enfrentar.
-            Confira sua equipe e a recompensa antes de comecar.
-        </p>
-
-        <div class="grade">
-
-            <?php foreach ($treinadores as $npc): ?>
-
-                <?php
-                    $dificuldade = $npc['dificuldade'];
-                    $limite = $limites[$dificuldade] ?? 3;
-                    $pokemons = $equipesNpc[$npc['id']] ?? [];
-                ?>
-
-                <div class="treinador <?= escapar($dificuldade) ?>">
-
-                    <h3><?= escapar($npc['nome']) ?></h3>
-
-                    <p>
-                        <strong>Dificuldade:</strong>
-                        <?= escapar(ucfirst($dificuldade)) ?>
-                    </p>
-
-                    <p>
-                        <strong>Recompensa:</strong>
-                        <?= (int) $npc['recompensa'] ?>
-                        Pokedolares
-                    </p>
-
-                    <p>
-                        <strong>Limite de itens:</strong>
-                        <?= $limite ?> para cada participante
-                    </p>
-
-                    <h4>Equipe adversaria</h4>
-
-                    <ul>
-                        <?php foreach ($pokemons as $pokemon): ?>
-                            <li>
-                                <?= escapar($pokemon['nome']) ?>
-                                (<?= escapar($pokemon['tipo']) ?>)
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-
-                    <form method="POST">
-
-                        <input
-                            type="hidden"
-                            name="token"
-                            value="<?= escapar($_SESSION['token_batalhas']) ?>"
-                        >
-
-                        <input
-                            type="hidden"
-                            name="npc_id"
-                            value="<?= (int) $npc['id'] ?>"
-                        >
-
-                        <button type="submit">
-                            Enfrentar treinador
-                        </button>
-
-                    </form>
-
-                </div>
-
-            <?php endforeach; ?>
-
-        </div>
-
-    <?php endif; ?>
-
-    <div class="voltar">
-        <a href="inicio.php">Voltar ao menu principal</a>
+<?php if ($erro !== ''): ?><div class="mb-ui-alert is-error" role="alert"><?= escapar($erro) ?></div><?php endif; ?>
+<?php if ($batalhaAtiva): ?>
+<section class="mb-paper mb-ui-card mb-npc-notice">
+  <h2>Uma batalha aguarda você!</h2>
+  <p>Seu confronto com <strong><?= escapar($batalhaAtiva['nome_npc']) ?></strong> ainda não terminou.</p>
+  <a class="mb-button mb-button-green" href="combate.php">Retomar batalha</a>
+</section>
+<?php elseif ($quantidadeEquipe !== 3): ?>
+<section class="mb-paper mb-ui-card mb-npc-notice">
+  <h2>Prepare sua equipe</h2>
+  <p>Para desafiar os treinadores, você precisa selecionar três Pokémon.</p>
+  <a class="mb-button" href="equipe.php">Montar minha equipe</a>
+</section>
+<?php else: ?>
+<h2 class="mb-trainers-heading">Escolha um Treinador</h2>
+<div class="mb-npc-list">
+<?php foreach ($treinadores as $npc): ?>
+  <?php
+  $dificuldade = (string) $npc['dificuldade'];
+  $limite = $limites[$dificuldade] ?? 3;
+  $pokemons = $equipesNpc[$npc['id']] ?? [];
+  $nomeDificuldade = ['facil'=>'Fácil','medio'=>'Médio','dificil'=>'Difícil'][$dificuldade] ?? ucfirst($dificuldade);
+  $imagemTreinador = in_array($dificuldade, ['facil','medio','dificil'], true) ? $dificuldade : 'facil';
+  ?>
+  <article class="mb-paper mb-npc-row is-<?= escapar($dificuldade) ?>">
+    <div class="mb-npc-avatar">
+      <img src="../assets/imagens/treinador-<?= escapar($imagemTreinador) ?>.webp" alt="Retrato ilustrado do <?= escapar($npc['nome']) ?>" loading="eager">
     </div>
-
-</main>
-</body>
-</html>
+    <div class="mb-npc-info">
+      <div class="mb-npc-naming">
+        <span class="mb-npc-difficulty"><?= escapar($nomeDificuldade) ?></span>
+        <h3><?= escapar($npc['nome']) ?></h3>
+      </div>
+      <div class="mb-npc-roster" aria-label="Equipe adversária">
+        <?php foreach ($pokemons as $pokemon): ?>
+        <div class="mb-npc-pokemon" title="<?= escapar($pokemon['nome']) ?>">
+          <span class="mb-npc-pokeball" aria-hidden="true"></span>
+          <span class="mb-npc-species"><?= escapar($pokemon['nome']) ?></span>
+        </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <div class="mb-npc-aside">
+      <span class="mb-ui-badge mb-ui-badge-gold">✦ <?= (int) $npc['recompensa'] ?> Pokédólares</span>
+      <span class="mb-ui-badge mb-npc-limit">Até <?= (int) $limite ?> itens</span>
+      <form method="post" class="mb-ui-form">
+        <input type="hidden" name="token" value="<?= escapar($_SESSION['token_batalhas']) ?>">
+        <input type="hidden" name="npc_id" value="<?= (int) $npc['id'] ?>">
+        <button class="mb-button mb-button-green" type="submit">⚔ Iniciar batalha</button>
+      </form>
+    </div>
+  </article>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
+<?php mbEncerrarPagina(); ?>
